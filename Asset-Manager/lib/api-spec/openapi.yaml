@@ -1,0 +1,766 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: E-commerce store API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: storefront
+    description: Public storefront endpoints (no auth)
+  - name: orders
+    description: Public order placement and lookup
+  - name: admin-auth
+    description: Admin login/session
+  - name: admin-categories
+    description: Admin category management
+  - name: admin-products
+    description: Admin product management
+  - name: admin-orders
+    description: Admin order management
+  - name: admin-stats
+    description: Admin dashboard analytics
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ───────────────────────── PUBLIC STOREFRONT ─────────────────────────
+  /storefront/categories:
+    get:
+      operationId: listStorefrontCategories
+      tags: [storefront]
+      summary: List all categories with product counts
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryWithCount"
+
+  /storefront/products:
+    get:
+      operationId: listStorefrontProducts
+      tags: [storefront]
+      summary: List products with optional filters and pagination
+      parameters:
+        - in: query
+          name: categoryId
+          schema:
+            type: ["integer", "null"]
+        - in: query
+          name: search
+          schema:
+            type: ["string", "null"]
+        - in: query
+          name: minPrice
+          schema:
+            type: ["number", "null"]
+        - in: query
+          name: maxPrice
+          schema:
+            type: ["number", "null"]
+        - in: query
+          name: sort
+          schema:
+            type: ["string", "null"]
+            enum: ["newest", "price_asc", "price_desc", null]
+        - in: query
+          name: page
+          schema:
+            type: ["integer", "null"]
+        - in: query
+          name: pageSize
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductListResponse"
+
+  /storefront/products/{id}:
+    get:
+      operationId: getStorefrontProduct
+      tags: [storefront]
+      summary: Get a single product by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /storefront/featured:
+    get:
+      operationId: getFeaturedProducts
+      tags: [storefront]
+      summary: Get a small curated list of featured products for the homepage
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /storefront/best-sellers:
+    get:
+      operationId: getBestSellers
+      tags: [storefront]
+      summary: Top selling products across the store
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /storefront/new-arrivals:
+    get:
+      operationId: getNewArrivals
+      tags: [storefront]
+      summary: Most recently added products
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  # ───────────────────────── ORDERS (PUBLIC) ─────────────────────────
+  /orders:
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Place an order from the cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get an order (public lookup for the success page)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ───────────────────────── ADMIN AUTH ─────────────────────────
+  /admin/login:
+    post:
+      operationId: adminLogin
+      tags: [admin-auth]
+      summary: Admin login (sets session cookie)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLoginRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+        "401":
+          description: Bad credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/logout:
+    post:
+      operationId: adminLogout
+      tags: [admin-auth]
+      summary: Admin logout (clears session)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/me:
+    get:
+      operationId: adminMe
+      tags: [admin-auth]
+      summary: Get the currently logged in admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ───────────────────────── ADMIN CATEGORIES ─────────────────────────
+  /admin/categories:
+    get:
+      operationId: adminListCategories
+      tags: [admin-categories]
+      summary: List all categories
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: adminCreateCategory
+      tags: [admin-categories]
+      summary: Create a category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+  /admin/categories/{id}:
+    put:
+      operationId: adminUpdateCategory
+      tags: [admin-categories]
+      summary: Update a category
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+    delete:
+      operationId: adminDeleteCategory
+      tags: [admin-categories]
+      summary: Delete a category
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ───────────────────────── ADMIN PRODUCTS ─────────────────────────
+  /admin/products:
+    get:
+      operationId: adminListProducts
+      tags: [admin-products]
+      summary: List all products
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: adminCreateProduct
+      tags: [admin-products]
+      summary: Create a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /admin/products/{id}:
+    get:
+      operationId: adminGetProduct
+      tags: [admin-products]
+      summary: Get a single product (admin)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    put:
+      operationId: adminUpdateProduct
+      tags: [admin-products]
+      summary: Update a product
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: adminDeleteProduct
+      tags: [admin-products]
+      summary: Delete a product
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ───────────────────────── ADMIN ORDERS ─────────────────────────
+  /admin/orders:
+    get:
+      operationId: adminListOrders
+      tags: [admin-orders]
+      summary: List all orders
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: ["string", "null"]
+            enum: ["pending", "paid", "shipped", "cancelled", null]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+  /admin/orders/{id}:
+    get:
+      operationId: adminGetOrder
+      tags: [admin-orders]
+      summary: Get full details for a single order
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+    patch:
+      operationId: adminUpdateOrder
+      tags: [admin-orders]
+      summary: Update order status and/or payment link
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  # ───────────────────────── ADMIN STATS ─────────────────────────
+  /admin/stats:
+    get:
+      operationId: adminGetStats
+      tags: [admin-stats]
+      summary: Dashboard summary (totals, recent activity, breakdowns)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status: { type: string }
+      required: [status]
+
+    SuccessResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+      required: [success]
+
+    ErrorResponse:
+      type: object
+      properties:
+        error: { type: string }
+      required: [error]
+
+    Category:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        slug: { type: string }
+      required: [id, name, slug]
+
+    CategoryWithCount:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        slug: { type: string }
+        productCount: { type: integer }
+      required: [id, name, slug, productCount]
+
+    CategoryInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        slug: { type: string, minLength: 1 }
+      required: [name, slug]
+
+    Product:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description: { type: string }
+        price: { type: number }
+        quantity: { type: integer }
+        categoryId: { type: integer }
+        categoryName:
+          type: ["string", "null"]
+        image: { type: string }
+        createdAt: { type: string, format: date-time }
+      required:
+        - id
+        - name
+        - description
+        - price
+        - quantity
+        - categoryId
+        - image
+        - createdAt
+
+    ProductInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        description: { type: string }
+        price: { type: number, minimum: 0 }
+        quantity: { type: integer, minimum: 0 }
+        categoryId: { type: integer }
+        image: { type: string, minLength: 1 }
+      required: [name, description, price, quantity, categoryId, image]
+
+    ProductListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+      required: [items, total, page, pageSize, totalPages]
+
+    OrderItem:
+      type: object
+      properties:
+        id: { type: integer }
+        productId: { type: integer }
+        productName: { type: string }
+        productImage:
+          type: ["string", "null"]
+        quantity: { type: integer }
+        price: { type: number }
+      required: [id, productId, productName, quantity, price]
+
+    Order:
+      type: object
+      properties:
+        id: { type: integer }
+        customerName: { type: string }
+        phone: { type: string }
+        address: { type: string }
+        totalPrice: { type: number }
+        status:
+          type: string
+          enum: [pending, paid, shipped, cancelled]
+        paymentLink:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt: { type: string, format: date-time }
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+      required:
+        - id
+        - customerName
+        - phone
+        - address
+        - totalPrice
+        - status
+        - createdAt
+        - items
+
+    CreateOrderItem:
+      type: object
+      properties:
+        productId: { type: integer }
+        quantity: { type: integer, minimum: 1 }
+      required: [productId, quantity]
+
+    CreateOrderRequest:
+      type: object
+      properties:
+        customerName: { type: string, minLength: 1 }
+        phone: { type: string, minLength: 5 }
+        address: { type: string, minLength: 1 }
+        notes:
+          type: ["string", "null"]
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/CreateOrderItem"
+      required: [customerName, phone, address, items]
+
+    UpdateOrderRequest:
+      type: object
+      properties:
+        status:
+          type: ["string", "null"]
+          enum: [pending, paid, shipped, cancelled, null]
+        paymentLink:
+          type: ["string", "null"]
+
+    AdminLoginRequest:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 1 }
+      required: [email, password]
+
+    AdminUser:
+      type: object
+      properties:
+        id: { type: integer }
+        email: { type: string }
+      required: [id, email]
+
+    StatusBreakdown:
+      type: object
+      properties:
+        status: { type: string }
+        count: { type: integer }
+      required: [status, count]
+
+    CategoryRevenue:
+      type: object
+      properties:
+        categoryId: { type: integer }
+        categoryName: { type: string }
+        revenue: { type: number }
+        ordersCount: { type: integer }
+      required: [categoryId, categoryName, revenue, ordersCount]
+
+    RecentOrderSummary:
+      type: object
+      properties:
+        id: { type: integer }
+        customerName: { type: string }
+        totalPrice: { type: number }
+        status: { type: string }
+        createdAt: { type: string, format: date-time }
+      required: [id, customerName, totalPrice, status, createdAt]
+
+    LowStockProduct:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        quantity: { type: integer }
+      required: [id, name, quantity]
+
+    AdminStats:
+      type: object
+      properties:
+        totalOrders: { type: integer }
+        totalRevenue: { type: number }
+        totalProducts: { type: integer }
+        totalCategories: { type: integer }
+        pendingOrders: { type: integer }
+        ordersByStatus:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatusBreakdown"
+        revenueByCategory:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryRevenue"
+        recentOrders:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecentOrderSummary"
+        lowStockProducts:
+          type: array
+          items:
+            $ref: "#/components/schemas/LowStockProduct"
+      required:
+        - totalOrders
+        - totalRevenue
+        - totalProducts
+        - totalCategories
+        - pendingOrders
+        - ordersByStatus
+        - revenueByCategory
+        - recentOrders
+        - lowStockProducts

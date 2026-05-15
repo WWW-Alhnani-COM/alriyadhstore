@@ -1,0 +1,92 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "zLwqPHE8G-xHSsPzP08LT"
+uri = "file://artifacts/store/src/assets/hero-banner.png"
+type = "image"
+title = "luxury saudi store hero"
+
+[[generated]]
+id = "ddd7Rlzb6e09KWRhqXoRU"
+uri = "file://artifacts/store/src/assets/lifestyle-1.png"
+type = "image"
+title = "Lifestyle shopping image"
+
+[[generated]]
+id = "Q3no1UhHsXr4mB-ddMZUk"
+uri = "file://artifacts/store/src/assets/lifestyle-2.png"
+type = "image"
+title = "Electronics lifestyle image"
+
+[[generated]]
+id = "SZEKtUB12vuTwfaAVVJ19"
+uri = "file://artifacts/store/src/assets/products/thobe.png"
+type = "image"
+title = "thobe"
+
+[[generated]]
+id = "f3MHfE9Nk-7x8V-l-1Da9"
+uri = "file://artifacts/store/src/assets/products/abaya.png"
+type = "image"
+title = "abaya"
+
+[[generated]]
+id = "fVk_0kuvwVlS9S2aYfNYp"
+uri = "file://artifacts/store/src/assets/products/kids_outfit.png"
+type = "image"
+title = "kids outfit"
+
+[[generated]]
+id = "zEG5edY68OpaYvJY4gnm2"
+uri = "file://artifacts/store/src/assets/products/headphones.png"
+type = "image"
+title = "headphones"
+
+[[generated]]
+id = "-P0jhmo8UYbk5Zx2f-Dol"
+uri = "file://artifacts/store/src/assets/products/smartphone.png"
+type = "image"
+title = "smartphone"
+
+[[generated]]
+id = "6pN-h6tgMrHtmyrh8y4Tg"
+uri = "file://artifacts/store/src/assets/products/smartwatch.png"
+type = "image"
+title = "smartwatch"
+
+[[generated]]
+id = "fK7fpKMTEYdDxOoFy1LZX"
+uri = "file://artifacts/store/src/assets/products/perfume_oud.png"
+type = "image"
+title = "oud perfume"
+
+[[generated]]
+id = "rpXB8RwSHNCsIWsLXpFq-"
+uri = "file://artifacts/store/src/assets/products/perfume_rose.png"
+type = "image"
+title = "rose perfume"
+
+[[generated]]
+id = "3Gindd_EZUyn6TQc61Xr9"
+uri = "file://artifacts/store/src/assets/products/lipstick.png"
+type = "image"
+title = "lipstick"
+
+[[generated]]
+id = "aUCUEax4OOex3p-MXzT36"
+uri = "file://artifacts/store/src/assets/cat-clothing.png"
+type = "image"
+title = "category clothing"
+
+[[generated]]
+id = "pa2WtuG4dttouCmlef8qk"
+uri = "file://artifacts/store/src/assets/cat-electronics.png"
+type = "image"
+title = "category electronics"
+
+[[generated]]
+id = "1j9Er1lft4AthsGDduRbj"
+uri = "file://artifacts/store/src/assets/cat-beauty.png"
+type = "image"
+title = "category beauty"

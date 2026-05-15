@@ -1,0 +1,184 @@
+You are a senior full-stack developer. Build a complete production-ready e-commerce web application.
+
+## Tech Stack (STRICT REQUIREMENTS)
+
+* Backend: PHP (no frameworks OR use Laravel if necessary, but prefer clean native PHP MVC)
+* Database: MySQL
+* Frontend: HTML5, CSS3, Vanilla JavaScript (no heavy frameworks)
+* Architecture: MVC structure (Models, Views, Controllers)
+
+---
+
+## Project Overview
+
+Create a full e-commerce platform for a Saudi-based store that sells:
+
+* Clothing (Men, Women, Kids)
+* Electronics (Accessories & devices)
+* Beauty products & perfumes
+
+The store owns inventory (NOT marketplace).
+
+---
+
+## Features Required
+
+### 1. Public Store (Frontend)
+
+#### صفحات أساسية:
+
+* Home Page
+* Products Listing Page (with filters)
+* Product Details Page
+* Categories Page
+* Cart Page
+* Checkout Page
+* Order نجاح (Success Page)
+* Contact / About Page
+
+#### وظائف:
+
+* عرض المنتجات مع الصور والسعر
+* فلترة حسب:
+
+  * الفئة
+  * السعر
+* بحث عن المنتجات
+* إضافة إلى السلة (Cart باستخدام LocalStorage أو Session)
+* نظام Checkout بسيط:
+
+  * إدخال الاسم، الجوال، العنوان
+  * اختيار طريقة الدفع (Payment Link)
+* بعد الطلب:
+
+  * يظهر رابط الدفع
+  * يتم حفظ الطلب في قاعدة البيانات
+
+---
+
+### 2. Admin Dashboard (لوحة التحكم)
+
+#### تسجيل الدخول:
+
+* نظام Admin Login (email + password)
+* حماية الجلسة
+
+#### إدارة الفئات:
+
+* إضافة فئة
+* تعديل فئة
+* حذف فئة
+
+#### إدارة المنتجات:
+
+* إضافة منتج:
+
+  * الاسم
+  * الوصف
+  * السعر
+  * الكمية
+  * الفئة
+  * صورة
+* تعديل / حذف منتج
+
+#### إدارة الطلبات:
+
+* عرض الطلبات
+* عرض تفاصيل الطلب
+* حالة الطلب (pending / paid / shipped)
+
+#### إدارة روابط الدفع:
+
+* إضافة Payment Link لكل طلب
+* تخزين الرابط في قاعدة البيانات
+* ربطه بالطلب
+
+---
+
+### 3. Database Design (MySQL)
+
+Create these tables:
+
+* admins (id, email, password)
+* categories (id, name)
+* products (id, name, description, price, quantity, category_id, image)
+* orders (id, customer_name, phone, address, total_price, status, payment_link, created_at)
+* order_items (id, order_id, product_id, quantity, price)
+
+---
+
+### 4. UI/UX Requirements
+
+* Responsive design (mobile-first)
+* Clean modern UI (similar to Noon/Amazon)
+* RTL support (Arabic layout)
+* Use Google Font: Tajawal
+* Smooth hover effects
+* Loading states
+
+---
+
+### 5. File Structure
+
+/project-root
+/app
+/controllers
+/models
+/views
+/public
+/css
+/js
+/images
+/admin
+/config
+index.php
+
+---
+
+### 6. Security
+
+* Use prepared statements (PDO or MySQLi)
+* Sanitize inputs
+* Prevent SQL injection
+* Session protection for admin
+
+---
+
+### 7. Extra Features (if possible)
+
+* Image upload system
+* Pagination for products
+* Basic analytics in admin (عدد الطلبات)
+* Order status update
+
+---
+
+## Output Requirements
+
+* Generate FULL working code (not snippets)
+* Include:
+
+  * Database SQL file
+  * All pages
+  * Admin panel
+* Add clear comments in code
+* Make it ready to run on Replit or shared hosting
+
+---
+
+## Important Notes
+
+* Keep code clean and readable
+* Do NOT skip any feature
+* Do NOT use external paid services
+* Make everything functional end-to-end
+
+---
+
+## Goal
+
+Deliver a complete small-scale e-commerce system that can be deployed and used immediately with:
+
+* Product management
+* Orders management
+* Payment link system

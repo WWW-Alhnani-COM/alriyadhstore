@@ -1,0 +1,238 @@
+import { useState } from "react";
+import { useRoute, Link } from "wouter";
+import { useGetStorefrontProduct } from "@workspace/api-client-react";
+import { useCart } from "@/hooks/useCart";
+import { formatCurrency } from "@/lib/formatters";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
+import { 
+  ChevronLeft, 
+  Minus, 
+  Plus, 
+  ShoppingCart, 
+  Truck, 
+  ShieldCheck, 
+  RefreshCw,
+  Share2,
+  Heart
+} from "lucide-react";
+
+export default function ProductDetail() {
+  const [, params] = useRoute("/products/:id");
+  const id = parseInt(params?.id || "0");
+  
+  const [quantity, setQuantity] = useState(1);
+  const { addItem } = useCart();
+
+  const { data: product, isLoading, isError } = useGetStorefrontProduct(id, {
+    query: { enabled: !!id } as any,
+  });
+
+  const handleAddToCart = () => {
+    if (!product) return;
+    
+    addItem({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      quantity,
+    });
+    
+    toast.success("تم إضافة المنتج للسلة", {
+      description: `${product.name} (${quantity})`
+    });
+  };
+
+  const handleQuantityChange = (delta: number) => {
+    if (!product) return;
+    const newQty = quantity + delta;
+    if (newQty >= 1 && newQty <= product.quantity) {
+      setQuantity(newQty);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row gap-12">
+          <Skeleton className="w-full md:w-1/2 aspect-square rounded-2xl" />
+          <div className="w-full md:w-1/2 space-y-6 pt-4">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-10 w-3/4" />
+            <Skeleton className="h-12 w-48" />
+            <Skeleton className="h-[200px] w-full" />
+            <div className="flex gap-4">
+              <Skeleton className="h-14 w-32" />
+              <Skeleton className="h-14 flex-1" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !product) {
+    return (
+      <div className="container mx-auto px-4 py-24 text-center">
+        <h2 className="text-3xl font-bold mb-4">المنتج غير موجود</h2>
+        <p className="text-muted-foreground mb-8">عذراً، لم نتمكن من العثور على المنتج الذي تبحث عنه.</p>
+        <Link href="/products">
+          <Button size="lg" className="rounded-full px-8">العودة للمنتجات</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const isOutOfStock = product.quantity === 0;
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Breadcrumb */}
+      <nav className="flex text-sm text-muted-foreground mb-8">
+        <ol className="flex items-center space-x-2 space-x-reverse">
+          <li><Link href="/" className="hover:text-primary">الرئيسية</Link></li>
+          <li><ChevronLeft className="h-4 w-4" /></li>
+          <li><Link href="/products" className="hover:text-primary">المنتجات</Link></li>
+          <li><ChevronLeft className="h-4 w-4" /></li>
+          {product.categoryName && (
+            <>
+              <li><Link href={`/products?category=${product.categoryId}`} className="hover:text-primary">{product.categoryName}</Link></li>
+              <li><ChevronLeft className="h-4 w-4" /></li>
+            </>
+          )}
+          <li className="font-semibold text-foreground line-clamp-1 max-w-[200px]">{product.name}</li>
+        </ol>
+      </nav>
+
+      <div className="flex flex-col md:flex-row gap-12 mb-24">
+        {/* Product Image */}
+        <div className="w-full md:w-1/2">
+          <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted/30 border">
+            <img 
+              src={product.image} 
+              alt={product.name} 
+              className="w-full h-full object-cover object-center"
+            />
+            {isOutOfStock ? (
+              <div className="absolute top-4 right-4 bg-destructive text-destructive-foreground px-4 py-1.5 rounded-full font-bold shadow-lg">
+                نفذت الكمية
+              </div>
+            ) : product.quantity < 5 ? (
+              <div className="absolute top-4 right-4 bg-orange-500 text-white px-4 py-1.5 rounded-full font-bold shadow-lg">
+                كمية محدودة ({product.quantity} متبقي)
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Product Info */}
+        <div className="w-full md:w-1/2 flex flex-col">
+          <div className="mb-2 flex items-center justify-between">
+            <Link href={`/products?category=${product.categoryId}`}>
+              <Badge variant="outline" className="text-primary border-primary/20 hover:bg-primary/5 transition-colors cursor-pointer px-3 py-1 text-sm font-medium">
+                {product.categoryName}
+              </Badge>
+            </Link>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-red-500 rounded-full">
+                <Heart className="h-5 w-5" />
+              </Button>
+              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full">
+                <Share2 className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+          
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4 leading-tight">
+            {product.name}
+          </h1>
+          
+          <div className="text-3xl md:text-4xl font-black text-primary mb-6 flex items-end gap-3">
+            {formatCurrency(product.price)}
+            <span className="text-sm font-normal text-muted-foreground mb-1.5">شامل الضريبة</span>
+          </div>
+
+          <Separator className="mb-6 opacity-50" />
+          
+          <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-muted-foreground mb-8 leading-relaxed whitespace-pre-wrap">
+            {product.description || "لا يوجد وصف متاح لهذا المنتج."}
+          </div>
+
+          <div className="mt-auto space-y-6 bg-muted/20 p-6 rounded-2xl border border-muted/50">
+            {!isOutOfStock ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold">الكمية</span>
+                  <div className="flex items-center bg-background border rounded-full overflow-hidden shadow-sm">
+                    <button 
+                      onClick={() => handleQuantityChange(1)}
+                      disabled={quantity >= product.quantity}
+                      className="w-10 h-10 flex items-center justify-center hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                    <div className="w-12 text-center font-bold text-lg select-none">
+                      {quantity}
+                    </div>
+                    <button 
+                      onClick={() => handleQuantityChange(-1)}
+                      disabled={quantity <= 1}
+                      className="w-10 h-10 flex items-center justify-center hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <Button 
+                  size="lg" 
+                  className="w-full h-14 text-lg font-bold rounded-xl shadow-lg hover-elevate gap-3"
+                  onClick={handleAddToCart}
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  إضافة للسلة
+                  <span className="opacity-50 mx-2">|</span>
+                  {formatCurrency(product.price * quantity)}
+                </Button>
+              </>
+            ) : (
+              <Button 
+                size="lg" 
+                variant="secondary"
+                disabled 
+                className="w-full h-14 text-lg font-bold rounded-xl"
+              >
+                المنتج غير متوفر حالياً
+              </Button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 mt-8 pt-8 border-t">
+            <div className="flex flex-col items-center text-center gap-2">
+              <div className="bg-primary/10 p-3 rounded-full text-primary">
+                <Truck className="h-5 w-5" />
+              </div>
+              <span className="text-xs font-medium text-muted-foreground">توصيل سريع</span>
+            </div>
+            <div className="flex flex-col items-center text-center gap-2">
+              <div className="bg-primary/10 p-3 rounded-full text-primary">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <span className="text-xs font-medium text-muted-foreground">منتج أصلي</span>
+            </div>
+            <div className="flex flex-col items-center text-center gap-2">
+              <div className="bg-primary/10 p-3 rounded-full text-primary">
+                <RefreshCw className="h-5 w-5" />
+              </div>
+              <span className="text-xs font-medium text-muted-foreground">إرجاع مجاني</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
