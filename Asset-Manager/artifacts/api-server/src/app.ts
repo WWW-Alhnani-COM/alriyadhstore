@@ -53,9 +53,9 @@ app.use("/api", router);
 if (process.env.NODE_ENV === "production") {
   const publicPath = process.env.PUBLIC_PATH || "./dist/public";
   app.use(express.static(publicPath));
-  app.get("*", (_req, res) => {
-    res.sendFile("index.html", { root: publicPath });
-  });
+app.get(/.*/, (_req, res) => {
+  res.sendFile("index.html", { root: publicPath });
+});
 }
 
 export default app;
