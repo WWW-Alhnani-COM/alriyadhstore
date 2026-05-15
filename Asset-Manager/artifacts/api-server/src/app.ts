@@ -50,12 +50,12 @@ app.use(
 app.use("/api", router);
 
 // Serve static frontend files in production
-if (process.env.NODE_ENV === "production") {
-  const publicPath = process.env.PUBLIC_PATH || "./dist/public";
-  app.use(express.static(publicPath));
-app.get(/.*/, (_req, res) => {
-  res.sendFile("index.html", { root: publicPath });
-});
-}
+// if (process.env.NODE_ENV === "production") {
+//   const publicPath = process.env.PUBLIC_PATH || "./dist/public";
+//   app.use(express.static(publicPath));
+// app.get(/.*/, (_req, res) => {
+//   res.sendFile("index.html", { root: publicPath });
+// });
+// }
 
 export default app;
