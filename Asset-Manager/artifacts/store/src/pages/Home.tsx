@@ -53,45 +53,45 @@ export default function Home() {
   return (
     <div className="pb-16">
       {/* Hero Section */}
-      <section className="relative h-[80vh] min-h-[500px] w-full flex items-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img 
-            src={heroImage} 
-            alt="تسوق الآن" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent rtl:from-transparent rtl:via-black/50 rtl:to-black/80" />
-        </div>
-        
-        <div className="container mx-auto px-4 relative z-10 text-white">
-          <div className="max-w-2xl">
-            <Badge className="bg-accent text-accent-foreground hover:bg-accent mb-6 text-sm py-1 px-3 border-none">
-              تشكيلة 2025 الجديدة
-            </Badge>
-            <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight tracking-tight">
-              اكتشف الفخامة <br/>
-              <span className="text-accent">التي تليق بك</span>
-            </h1>
-            <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-lg leading-relaxed">
-              تسوق أحدث المنتجات من أرقى العلامات التجارية. جودة مضمونة وتجربة تسوق لا مثيل لها.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link href="/products">
-                <Button size="lg" className="h-14 px-8 text-lg font-bold bg-primary hover:bg-primary/90 text-white rounded-full">
-                  تسوق الآن
-                  <ChevronLeft className="mr-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href="/categories">
-                <Button size="lg" variant="outline" className="h-14 px-8 text-lg font-bold text-white border-white hover:bg-white/20 bg-transparent rounded-full backdrop-blur-sm">
-                  تصفح الأقسام
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      {/* Hero Section - Banner version */}
+<section className="relative h-96 w-full flex items-center overflow-hidden">
+  <div className="absolute inset-0 z-0">
+    <img 
+      src={heroImage} 
+      alt="تسوق الآن" 
+      className="w-full h-full object-cover object-center"
+    />
+    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent rtl:from-transparent rtl:via-black/50 rtl:to-black/80" />
+  </div>
+  
+  <div className="container mx-auto px-4 relative z-10 text-white">
+    <div className="max-w-2xl">
+      <Badge className="bg-accent text-accent-foreground hover:bg-accent mb-4 text-sm py-1 px-3 border-none">
+        تشكيلة 2025 الجديدة
+      </Badge>
+      <h1 className="text-3xl md:text-5xl font-black mb-4 leading-tight tracking-tight">
+        اكتشف الفخامة <br/>
+        <span className="text-accent">التي تليق بك</span>
+      </h1>
+      <p className="text-base md:text-lg text-gray-200 mb-6 max-w-lg leading-relaxed">
+        تسوق أحدث المنتجات من أرقى العلامات التجارية.
+      </p>
+      <div className="flex flex-wrap gap-3">
+        <Link href="/products">
+          <Button size="lg" className="h-12 px-6 text-base font-bold bg-primary hover:bg-primary/90 text-white rounded-full">
+            تسوق الآن
+            <ChevronLeft className="mr-2 h-4 w-4" />
+          </Button>
+        </Link>
+        <Link href="/categories">
+          <Button size="lg" variant="outline" className="h-12 px-6 text-base font-bold text-white border-white hover:bg-white/20 bg-transparent rounded-full backdrop-blur-sm">
+            تصفح الأقسام
+          </Button>
+        </Link>
+      </div>
+    </div>
+  </div>
+</section>
      
 
       {/* Categories */}
