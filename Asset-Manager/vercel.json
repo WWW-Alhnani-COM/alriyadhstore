@@ -1,8 +1,16 @@
 {
-  "buildCommand": "cd artifacts/store && npx vite build --config vite.config.ts",
-  "outputDirectory": "artifacts/store/dist/public",
+  "buildCommand": "cd artifacts/store && pnpm install && pnpm run build",
+  "outputDirectory": "artifacts/store/dist",
+  "installCommand": "pnpm install",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/api/(.*)",
+      "destination": "https://alriyadhstore.onrender.com/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ],
   "headers": [
     {
