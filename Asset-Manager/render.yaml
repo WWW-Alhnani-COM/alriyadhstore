@@ -25,7 +25,7 @@ services:
     routes:
       - type: rewrite
         source: /api/*
-        destination: https://riyadhstore-api.onrender.com/api/$1
+        destination: https://alriyadhstore.onrender.com/api/$1
       - type: rewrite
         source: /(.*)
         destination: /index.html
