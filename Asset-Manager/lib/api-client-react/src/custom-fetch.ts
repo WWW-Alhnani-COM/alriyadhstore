@@ -1,4 +1,4 @@
-const DEFAULT_BASE_URL = 'https://alriyadhstore.onrender.com/api';
+const DEFAULT_BASE_URL = 'https://alriyadhstore.onrender.com';
 
 export type CustomFetchOptions = RequestInit & {
   responseType?: "json" | "text" | "blob" | "auto";
