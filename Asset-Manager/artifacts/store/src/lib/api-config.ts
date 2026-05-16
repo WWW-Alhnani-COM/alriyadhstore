@@ -2,7 +2,7 @@
 import { setBaseUrl } from '../../../../lib/api-client-react/src/custom-fetch';
 
 // تعيين الرابط الأساسي لـ API
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://alriyadhstore.onrender.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://alriyadhstore.onrender.com';
 
 setBaseUrl(API_BASE_URL);
 
