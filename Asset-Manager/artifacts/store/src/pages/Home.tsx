@@ -67,52 +67,58 @@ export default function Home() {
 </section>
      
 
-      {/* Categories */}
-      {categories && categories.length > 0 && (
-        <section className="py-16 container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold">تسوق حسب القسم</h2>
-            <Link href="/categories" className="text-primary font-medium hover:underline flex items-center">
-              عرض الكل <ChevronLeft className="w-4 h-4 ml-1" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-            {categories.slice(0, 6).map((category, idx) => {
-              const img =
-                CATEGORY_IMAGES[category.slug] ??
-                CATEGORY_FALLBACK[idx % CATEGORY_FALLBACK.length];
-              return (
-                <Link key={category.id} href={`/products?category=${category.id}`}>
-                  <div className="group relative rounded-3xl overflow-hidden aspect-[4/3] bg-muted cursor-pointer shadow-sm hover:shadow-xl transition-all duration-500">
-                    <img
-                      src={img}
-                      alt={category.name}
-                      loading="lazy"
-                      className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700 ease-out"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent z-10" />
-                    <div className="absolute top-4 right-4 z-20">
-                      <Badge className="bg-white/90 text-foreground border-none font-medium backdrop-blur-sm">
-                        {category.productCount} منتج
-                      </Badge>
-                    </div>
-                    <div className="absolute inset-x-0 bottom-0 z-20 p-6 text-white">
-                      <h3 className="text-2xl md:text-3xl font-extrabold mb-2 drop-shadow-md">
-                        {category.name}
-                      </h3>
-                      <span className="inline-flex items-center gap-1 text-sm font-semibold text-accent group-hover:gap-2 transition-all">
-                        تسوق الآن
-                        <ChevronLeft className="w-4 h-4" />
-                      </span>
-                    </div>
+    {/* Categories - Horizontal Scroll on Mobile */}
+{categories && categories.length > 0 && (
+  <section className="py-8 md:py-16 container mx-auto px-4">
+    <div className="flex items-center justify-between mb-4 md:mb-8">
+      <h2 className="text-xl md:text-3xl font-bold">تسوق حسب القسم</h2>
+      <Link href="/categories" className="text-primary font-medium hover:underline flex items-center text-sm md:text-base">
+        عرض الكل <ChevronLeft className="w-4 h-4 mr-1" />
+      </Link>
+    </div>
+    
+    {/* Horizontal scroll container */}
+    <div className="overflow-x-auto overflow-y-hidden pb-4 scrollbar-hide">
+      <div className="flex gap-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6" style={{ width: 'max-content', minWidth: '100%' }}>
+        {categories.slice(0, 6).map((category, idx) => {
+          const img =
+            CATEGORY_IMAGES[category.slug] ??
+            CATEGORY_FALLBACK[idx % CATEGORY_FALLBACK.length];
+          return (
+            <Link key={category.id} href={`/products?category=${category.id}`}>
+              <div className="group relative rounded-2xl overflow-hidden bg-muted cursor-pointer transition-all duration-300 w-36 md:w-auto md:min-w-0">
+                {/* مربع صغير ثابت على الموبايل - width: 144px */}
+                <div className="w-36 h-36 md:w-full md:aspect-[4/3] relative">
+                  <img
+                    src={img}
+                    alt={category.name}
+                    loading="lazy"
+                    className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  
+                  {/* عدد المنتجات - يظهر كـ badge */}
+                  <div className="absolute top-2 right-2 z-10">
+                    <Badge className="bg-white/90 text-foreground border-none font-medium backdrop-blur-sm text-xs px-2 py-0.5">
+                      {category.productCount}
+                    </Badge>
                   </div>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
+                  
+                  {/* اسم القسم */}
+                  <div className="absolute inset-x-0 bottom-0 z-10 p-2 text-white">
+                    <h3 className="text-sm font-bold text-center drop-shadow-md line-clamp-2">
+                      {category.name}
+                    </h3>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+)}
       {/* Featured Products */}
       {featured && featured.length > 0 && (
         <section className="py-16 bg-muted/10">
