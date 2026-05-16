@@ -61,13 +61,31 @@ export default function Home() {
       src={heroImage} 
       alt="تسوق الآن" 
       className="w-full h-full object-cover"
-      style={{ maxHeight: '300px' }} // يمكنك تغيير الارتفاع هنا
+      style={{ maxHeight: '200px' }} // يمكنك تغيير الارتفاع هنا
     />
   </div>
 </section>
      
 
     {/* Categories - Horizontal Scroll on Mobile */}
+      {/* Featured Products */}
+      {featured && featured.length > 0 && (
+        <section className="py-16 bg-muted/10">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl md:text-3xl font-bold">منتجات مميزة</h2>
+              <Link href="/products" className="text-primary font-medium hover:underline flex items-center">
+                عرض الكل <ChevronLeft className="w-4 h-4 ml-1" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {featured.slice(0, 6).map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 {categories && categories.length > 0 && (
   <section className="py-8 md:py-16 container mx-auto px-4">
     <div className="flex items-center justify-between mb-4 md:mb-8">
@@ -119,24 +137,6 @@ export default function Home() {
     </div>
   </section>
 )}
-      {/* Featured Products */}
-      {featured && featured.length > 0 && (
-        <section className="py-16 bg-muted/10">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold">منتجات مميزة</h2>
-              <Link href="/products" className="text-primary font-medium hover:underline flex items-center">
-                عرض الكل <ChevronLeft className="w-4 h-4 ml-1" />
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              {featured.slice(0, 4).map(product => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Lifestyle Banners */}
       <section className="py-16 container mx-auto px-4">
