@@ -1,13 +1,9 @@
-setBaseUrl(import.meta.env.VITE_API_URL);
-// في artifacts/store/src/main.tsx
-import './lib/api-config'; // أضف هذا السطر في البداية
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import './index.css';
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import "./index.css";
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+import { setBaseUrl } from "api-client-react";
+
+setBaseUrl(import.meta.env.VITE_API_URL);
+
+createRoot(document.getElementById("root")!).render(<App />);
