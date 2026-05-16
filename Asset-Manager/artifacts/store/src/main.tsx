@@ -1,3 +1,4 @@
+setBaseUrl(import.meta.env.VITE_API_URL);
 // في artifacts/store/src/main.tsx
 import './lib/api-config'; // أضف هذا السطر في البداية
 import React from 'react';
