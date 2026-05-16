@@ -51,7 +51,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
             </Sheet>
 
             <Link href="/" className="flex items-center gap-2">
-              <span className="text-2xl font-black text-primary tracking-tight">متجر الرياض</span>
+              <span className="text-2xl font-black text-primary tracking-tight">متجر لمسات مول</span>
             </Link>
           </div>
 
@@ -125,7 +125,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
       <footer className="bg-muted pt-16 pb-8 border-t mt-auto">
         <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           <div className="space-y-4">
-            <h3 className="text-xl font-bold text-primary">متجر الرياض</h3>
+            <h3 className="text-xl font-bold text-primary">متجر لمسات مول</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
               وجهتك الأولى للتسوق الإلكتروني في المملكة العربية السعودية. نوفر لك أفضل المنتجات بأعلى جودة.
             </p>
@@ -137,6 +137,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
               <li><Link href="/categories" className="hover:text-primary transition-colors">تصفح الأقسام</Link></li>
               <li><Link href="/about" className="hover:text-primary transition-colors">من نحن</Link></li>
               <li><Link href="/contact" className="hover:text-primary transition-colors">اتصل بنا</Link></li>
+              <li><Link href="/admin" className="hover:text-primary transition-colors">..</Link></li>
             </ul>
           </div>
           <div>
@@ -153,12 +154,11 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>الرياض، المملكة العربية السعودية</li>
               <li>support@riyadhstore.sa</li>
-              <li>920000000</li>
             </ul>
           </div>
         </div>
         <div className="container mx-auto px-4 border-t pt-8 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} متجر الرياض. جميع الحقوق محفوظة.</p>
+          <p>© {new Date().getFullYear()} متجر لمسات مول. جميع الحقوق محفوظة.</p>
         </div>
       </footer>
     </div>
