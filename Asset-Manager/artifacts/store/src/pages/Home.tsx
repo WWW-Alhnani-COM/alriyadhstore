@@ -92,27 +92,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Brand Promises */}
-      <section className="py-12 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { icon: Truck, title: "شحن سريع", desc: "توصيل خلال 24-48 ساعة" },
-              { icon: ShieldCheck, title: "جودة أصلية", desc: "منتجات أصلية 100%" },
-              { icon: CreditCard, title: "دفع آمن", desc: "طرق دفع متعددة وآمنة" },
-              { icon: Clock, title: "دعم متواصل", desc: "خدمة عملاء على مدار الساعة" }
-            ].map((feature, i) => (
-              <div key={i} className="flex flex-col items-center text-center p-4">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
-                  <feature.icon className="h-6 w-6" />
-                </div>
-                <h3 className="font-bold mb-1">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+     
 
       {/* Categories */}
       {categories && categories.length > 0 && (
@@ -226,6 +206,27 @@ export default function Home() {
           </div>
         </section>
       )}
+       {/* Brand Promises */}
+      <section className="py-12 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { icon: Truck, title: "شحن سريع", desc: "توصيل خلال 24-48 ساعة" },
+              { icon: ShieldCheck, title: "جودة أصلية", desc: "منتجات أصلية 100%" },
+              { icon: CreditCard, title: "دفع آمن", desc: "طرق دفع متعددة وآمنة" },
+              { icon: Clock, title: "دعم متواصل", desc: "خدمة عملاء على مدار الساعة" }
+            ].map((feature, i) => (
+              <div key={i} className="flex flex-col items-center text-center p-4">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
+                  <feature.icon className="h-6 w-6" />
+                </div>
+                <h3 className="font-bold mb-1">{feature.title}</h3>
+                <p className="text-sm text-muted-foreground">{feature.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
