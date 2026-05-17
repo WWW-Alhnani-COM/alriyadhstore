@@ -24,7 +24,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, ShoppingBag, Loader2, Search } from "lucide-react";
+import { Plus, Edit2, Trash2, ShoppingBag, Loader2, Search, Star } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
 
 
@@ -45,10 +45,32 @@ export default function AdminProducts() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
 
-const { data: productsData, isLoading } = useAdminListProducts(
-  search ? { search } : {},  // ✅ فقط يرسل search إذا كان موجوداً
-  { query: { keepPreviousData: true } as any }
-);
+  // دالة للحصول على المنتجات المميزة من localStorage
+  const getFeaturedIds = (): number[] => {
+    const saved = localStorage.getItem('featured_products');
+    return saved ? JSON.parse(saved) : [1, 3, 5];
+  };
+
+  // دالة لتبديل حالة المنتج المميز
+  const toggleFeatured = (productId: number) => {
+    let featuredIds = getFeaturedIds();
+    
+    if (featuredIds.includes(productId)) {
+      featuredIds = featuredIds.filter(id => id !== productId);
+      toast.success("تمت إزالة المنتج من المميزات");
+    } else {
+      featuredIds.push(productId);
+      toast.success("تمت إضافة المنتج للمميزات");
+    }
+    
+    localStorage.setItem('featured_products', JSON.stringify(featuredIds));
+    queryClient.invalidateQueries({ queryKey: getAdminListProductsQueryKey() });
+  };
+
+  const { data: productsData, isLoading } = useAdminListProducts(
+    search ? { search } : {},
+    { query: { keepPreviousData: true } as any }
+  );
   const { data: categories } = useAdminListCategories();
   
   const createMutation = useAdminCreateProduct();
@@ -207,18 +229,18 @@ const { data: productsData, isLoading } = useAdminListProducts(
                     )}/>
                   </div>
 
-               <FormField control={form.control} name="image" render={({ field }) => (
-  <FormItem>
-    <FormLabel className="font-bold">صورة المنتج</FormLabel>
-    <FormControl>
-      <ImageUpload
-        value={field.value}
-        onChange={field.onChange}
-      />
-    </FormControl>
-    <FormMessage />
-  </FormItem>
-)}/>
+                  <FormField control={form.control} name="image" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-bold">صورة المنتج</FormLabel>
+                      <FormControl>
+                        <ImageUpload
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}/>
                   
 
                   <FormField control={form.control} name="description" render={({ field }) => (
@@ -253,13 +275,14 @@ const { data: productsData, isLoading } = useAdminListProducts(
                 <TableHead className="font-bold py-4">القسم</TableHead>
                 <TableHead className="font-bold py-4">السعر</TableHead>
                 <TableHead className="font-bold py-4 text-center">المخزون</TableHead>
+                <TableHead className="font-bold py-4 text-center">مميز</TableHead>
                 <TableHead className="text-left font-bold py-4">الإجراءات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {(productsData as any[])?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                     لا توجد منتجات مطابقة للبحث.
                   </TableCell>
                 </TableRow>
@@ -286,6 +309,19 @@ const { data: productsData, isLoading } = useAdminListProducts(
                         <Badge variant="outline" className="font-bold border-none bg-muted">{product.quantity}</Badge>
                       )}
                     </TableCell>
+                    
+                    {/* زر التمييز */}
+                    <TableCell className="text-center">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleFeatured(product.id)}
+                        className={getFeaturedIds().includes(product.id) ? "text-yellow-500 hover:text-yellow-600" : "text-gray-400 hover:text-yellow-500"}
+                      >
+                        <Star className={`w-5 h-5 ${getFeaturedIds().includes(product.id) ? "fill-yellow-500" : ""}`} />
+                      </Button>
+                    </TableCell>
+                    
                     <TableCell className="text-left">
                       <div className="flex justify-end gap-2">
                         <Button variant="ghost" size="icon" onClick={() => handleEdit(product)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
