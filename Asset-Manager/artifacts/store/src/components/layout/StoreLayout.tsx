@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
+import { MobileMenu } from "@/components/MobileMenu";
 
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   const { totalItems } = useCart();
@@ -32,7 +33,9 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Sheet>
+                        <MobileMenu />
+
+            {/* <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden">
                   <Menu className="h-5 w-5" />
@@ -48,7 +51,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
                   <Link href="/contact" className="text-lg font-bold">اتصل بنا</Link>
                 </nav>
               </SheetContent>
-            </Sheet>
+            </Sheet> */}
 
             <Link href="/" className="flex items-center gap-2">
               <span className="text-2xl font-black text-primary tracking-tight">متجر لمسات مول</span>
