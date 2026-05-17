@@ -4,18 +4,8 @@ import session from "express-session";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
-const pgSession = require('connect-pg-simple');
-const { Pool } = require('pg');
 
 const app: Express = express();
-
-// إعداد PostgreSQL Session Store
-const pgPool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
-
-const PgSession = pgSession(session);
 
 app.use(
   pinoHttp({
@@ -49,11 +39,6 @@ const sessionSecret = process.env["SESSION_SECRET"] ?? "dev-only-secret-change-m
 
 app.use(
   session({
-    store: new PgSession({ 
-      pool: pgPool,
-      tableName: 'session',
-      createTableIfMissing: true
-    }),
     name: "store.sid",
     secret: sessionSecret,
     resave: false,
@@ -67,6 +52,7 @@ app.use(
     },
   }),
 );
+
 app.use("/api", router);
 
 export default app;
