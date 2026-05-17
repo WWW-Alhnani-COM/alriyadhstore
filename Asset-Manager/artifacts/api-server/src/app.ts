@@ -27,9 +27,12 @@ app.use(
   }),
 );
 
-app.use(cors({ 
-  origin: 'https://riyadhstore.vercel.app',
-  credentials: true 
+// إعدادات CORS المتقدمة للسماح بالجلسات عبر النطاقات
+app.use(cors({
+  origin: 'https://riyadhstore.vercel.app', // النطاق المسموح
+  credentials: true, // السماح بإرسال Cookies
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'], // الرؤوس المسموحة
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] // الطرق المسموحة
 }));
 
 app.use(express.json({ limit: "2mb" }));
@@ -45,10 +48,10 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      sameSite: "none",
-      secure: true,
+      sameSite: "none",     // أساسي للجلسات عبر النطاقات
+      secure: true,         // أساسي لـ HTTPS
       maxAge: 1000 * 60 * 60 * 24 * 7,
-      domain: ".vercel.app"
+      domain: ".onrender.com" // **التغيير الجوهري**: اجعل الـ Cookie متاحًا لجميع نطاقات onrender.com
     },
   }),
 );
