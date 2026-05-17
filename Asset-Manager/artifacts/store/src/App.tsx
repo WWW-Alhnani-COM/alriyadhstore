@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 // Import all pages
 import StoreLayout from "@/components/layout/StoreLayout";
@@ -32,20 +33,21 @@ function Router() {
     <Switch>
       <Route path="/admin/login" component={AdminLogin} />
       
-      <Route path="/admin" nest>
-        <AdminLayout>
-          <Switch>
-            <Route path="/" component={AdminDashboard} />
-            <Route path="/dashboard" component={AdminDashboard} />
-            <Route path="/categories" component={AdminCategories} />
-            <Route path="/products" component={AdminProducts} />
-            <Route path="/orders" component={AdminOrders} />
-            <Route path="/orders/:id" component={AdminOrderDetail} />
-            <Route component={NotFound} />
-          </Switch>
-        </AdminLayout>
-      </Route>
-
+     <Route path="/admin" nest>
+  <ProtectedRoute>
+    <AdminLayout>
+      <Switch>
+        <Route path="/" component={AdminDashboard} />
+        <Route path="/dashboard" component={AdminDashboard} />
+        <Route path="/categories" component={AdminCategories} />
+        <Route path="/products" component={AdminProducts} />
+        <Route path="/orders" component={AdminOrders} />
+        <Route path="/orders/:id" component={AdminOrderDetail} />
+        <Route component={NotFound} />
+      </Switch>
+    </AdminLayout>
+  </ProtectedRoute>
+</Route>
       <Route path="/" nest>
         <StoreLayout>
           <Switch>
