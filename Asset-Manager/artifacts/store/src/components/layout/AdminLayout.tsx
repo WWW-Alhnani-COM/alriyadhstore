@@ -31,8 +31,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (isError || !user) {
-  // تعطيل إعادة التوجيه مؤقتاً للتجربة
+if (false && (isError || !user)) {  // تعطيل إعادة التوجيه مؤقتاً للتجربة
   // setLocation("/admin/login");
   // return null;
   // عرض لوحة التحكم حتى مع فشل جلب البيانات (للتجربة فقط)
