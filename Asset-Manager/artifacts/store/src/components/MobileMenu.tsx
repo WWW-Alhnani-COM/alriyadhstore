@@ -210,7 +210,6 @@ export function MobileMenu() {
               onClick={handleClose}
               className="flex items-center justify-between px-4 py-3 rounded-xl bg-muted/50 hover:bg-muted transition-all duration-200"
             >
-              <span className="text-sm font-medium text-muted-foreground">لوحة التحكم</span>
               <ArrowRight className="h-4 w-4 text-muted-foreground" />
             </Link>
             <div className="text-center text-[10px] text-muted-foreground mt-4">
