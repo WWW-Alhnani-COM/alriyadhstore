@@ -20,7 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { ChevronLeft, Package, User, Truck, Receipt, Loader2, Save } from "lucide-react";
 
 export default function AdminOrderDetail() {
-  const [, params] = useRoute("/admin/orders/:id");
+  const [, params] = useRoute("/orders/:id");
   const id = parseInt(params?.id || "0");
   const queryClient = useQueryClient();
 
