@@ -95,7 +95,7 @@ const { data: orders, isLoading } = useAdminListOrders(
                     <TableCell>{getStatusBadge(order.status)}</TableCell>
                     <TableCell className="font-black text-primary">{formatCurrency(order.totalPrice)}</TableCell>
                     <TableCell className="text-left">
-                      <Link href={`/admin/orders/${order.id}`}>
+                      <Link href={`/orders/${order.id}`}>
                         <Button variant="ghost" size="sm" className="gap-2 font-bold hover:bg-primary hover:text-primary-foreground transition-colors">
                           <Eye className="w-4 h-4" /> عرض
                         </Button>
