@@ -43,7 +43,10 @@ export default function AdminProducts() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
 
-  const { data: productsData, isLoading } = useAdminListProducts({ search: search || null }, { query: { keepPreviousData: true } as any });
+const { data: productsData, isLoading } = useAdminListProducts(
+  search ? { search } : {},  // ✅ فقط يرسل search إذا كان موجوداً
+  { query: { keepPreviousData: true } as any }
+);
   const { data: categories } = useAdminListCategories();
   
   const createMutation = useAdminCreateProduct();
