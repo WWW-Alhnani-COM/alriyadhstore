@@ -4,8 +4,18 @@ import session from "express-session";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import pgSession from 'connect-pg-simple';
+import { Pool } from 'pg';
 
 const app: Express = express();
+
+// إعداد PostgreSQL Session Store
+const pgPool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
+const PgSession = pgSession(session);
 
 app.use(
   pinoHttp({
@@ -26,9 +36,12 @@ app.use(
     },
   }),
 );
-app.use(cors({
-  origin: '*'
+
+app.use(cors({ 
+  origin: 'https://riyadhstore.vercel.app',
+  credentials: true 
 }));
+
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -36,6 +49,11 @@ const sessionSecret = process.env["SESSION_SECRET"] ?? "dev-only-secret-change-m
 
 app.use(
   session({
+    store: new PgSession({ 
+      pool: pgPool,
+      tableName: 'session',
+      createTableIfMissing: true
+    }),
     name: "store.sid",
     secret: sessionSecret,
     resave: false,
@@ -51,14 +69,5 @@ app.use(
 );
 
 app.use("/api", router);
-
-// Serve static frontend files in production
-// if (process.env.NODE_ENV === "production") {
-//   const publicPath = process.env.PUBLIC_PATH || "./dist/public";
-//   app.use(express.static(publicPath));
-// app.get(/.*/, (_req, res) => {
-//   res.sendFile("index.html", { root: publicPath });
-// });
-// }
 
 export default app;
