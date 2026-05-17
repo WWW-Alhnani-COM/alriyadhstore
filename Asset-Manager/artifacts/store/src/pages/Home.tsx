@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useGetFeaturedProducts, useGetBestSellers, useGetNewArrivals, useListStorefrontCategories } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -49,27 +50,32 @@ export default function Home() {
   const { data: featured } = useGetFeaturedProducts();
   const { data: bestSellers } = useGetBestSellers();
   const { data: newArrivals } = useGetNewArrivals();
+  
+  // ✅ أضف هذه الدالة للحصول على المنتجات المميزة من localStorage
+  const getFeaturedIds = (): number[] => {
+    const saved = localStorage.getItem('featured_products');
+    return saved ? JSON.parse(saved) : [];
+  };
+  
+  // ✅ تصفية المنتجات المميزة بناءً على localStorage
+  const featuredProducts = featured?.filter(product => getFeaturedIds().includes(product.id)) || [];
 
   return (
     <div className="pb-16">
       {/* Hero Section */}
-      {/* Hero Section - Banner version */}
-{/* Hero Section - Image Only Banner */}
-<section className="relative w-full overflow-hidden">
-  <div className="relative w-full">
-    <img 
-      src={heroImage} 
-      alt="تسوق الآن" 
-      className="w-full h-full object-cover"
-      style={{ maxHeight: '200px' }} // يمكنك تغيير الارتفاع هنا
-    />
-  </div>
-</section>
-     
+      <section className="relative w-full overflow-hidden">
+        <div className="relative w-full">
+          <img 
+            src={heroImage} 
+            alt="تسوق الآن" 
+            className="w-full h-full object-cover"
+            style={{ maxHeight: '200px' }}
+          />
+        </div>
+      </section>
 
-    {/* Categories - Horizontal Scroll on Mobile */}
-      {/* Featured Products */}
-      {featured && featured.length > 0 && (
+      {/* Featured Products - تعرض فقط المنتجات المخزنة في localStorage */}
+      {featuredProducts.length > 0 && (
         <section className="py-16 bg-muted/10">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-8">
@@ -79,64 +85,62 @@ export default function Home() {
               </Link>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              {featured.slice(0, 6).map(product => (
+              {featuredProducts.slice(0, 6).map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
           </div>
         </section>
       )}
-{categories && categories.length > 0 && (
-  <section className="py-8 md:py-16 container mx-auto px-4">
-    <div className="flex items-center justify-between mb-4 md:mb-8">
-      <h2 className="text-xl md:text-3xl font-bold">تسوق حسب القسم</h2>
-      <Link href="/categories" className="text-primary font-medium hover:underline flex items-center text-sm md:text-base">
-        عرض الكل <ChevronLeft className="w-4 h-4 mr-1" />
-      </Link>
-    </div>
-    
-    {/* Horizontal scroll container */}
-    <div className="overflow-x-auto overflow-y-hidden pb-4 scrollbar-hide">
-      <div className="flex gap-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6" style={{ width: 'max-content', minWidth: '100%' }}>
-        {categories.slice(0, 6).map((category, idx) => {
-          const img =
-            CATEGORY_IMAGES[category.slug] ??
-            CATEGORY_FALLBACK[idx % CATEGORY_FALLBACK.length];
-          return (
-            <Link key={category.id} href={`/products?category=${category.id}`}>
-              <div className="group relative rounded-2xl overflow-hidden bg-muted cursor-pointer transition-all duration-300 w-36 md:w-auto md:min-w-0">
-                {/* مربع صغير ثابت على الموبايل - width: 144px */}
-                <div className="w-36 h-36 md:w-full md:aspect-[4/3] relative">
-                  <img
-                    src={img}
-                    alt={category.name}
-                    loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  
-                  {/* عدد المنتجات - يظهر كـ badge */}
-                  <div className="absolute top-2 right-2 z-10">
-                    <Badge className="bg-white/90 text-foreground border-none font-medium backdrop-blur-sm text-xs px-2 py-0.5">
-                      {category.productCount}
-                    </Badge>
-                  </div>
-                  
-                  {/* اسم القسم */}
-                  <div className="absolute inset-x-0 bottom-0 z-10 p-2 text-white">
-                    <h3 className="text-sm font-bold text-center drop-shadow-md line-clamp-2">
-                      {category.name}
-                    </h3>
-                  </div>
-                </div>
-              </div>
+
+      {/* Categories */}
+      {categories && categories.length > 0 && (
+        <section className="py-8 md:py-16 container mx-auto px-4">
+          <div className="flex items-center justify-between mb-4 md:mb-8">
+            <h2 className="text-xl md:text-3xl font-bold">تسوق حسب القسم</h2>
+            <Link href="/categories" className="text-primary font-medium hover:underline flex items-center text-sm md:text-base">
+              عرض الكل <ChevronLeft className="w-4 h-4 mr-1" />
             </Link>
-          );
-        })}
-      </div>
-    </div>
-  </section>
-)}
+          </div>
+          
+          <div className="overflow-x-auto overflow-y-hidden pb-4 scrollbar-hide">
+            <div className="flex gap-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6" style={{ width: 'max-content', minWidth: '100%' }}>
+              {categories.slice(0, 6).map((category, idx) => {
+                const img =
+                  CATEGORY_IMAGES[category.slug] ??
+                  CATEGORY_FALLBACK[idx % CATEGORY_FALLBACK.length];
+                return (
+                  <Link key={category.id} href={`/products?category=${category.id}`}>
+                    <div className="group relative rounded-2xl overflow-hidden bg-muted cursor-pointer transition-all duration-300 w-36 md:w-auto md:min-w-0">
+                      <div className="w-36 h-36 md:w-full md:aspect-[4/3] relative">
+                        <img
+                          src={img}
+                          alt={category.name}
+                          loading="lazy"
+                          className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                        
+                        <div className="absolute top-2 right-2 z-10">
+                          <Badge className="bg-white/90 text-foreground border-none font-medium backdrop-blur-sm text-xs px-2 py-0.5">
+                            {category.productCount}
+                          </Badge>
+                        </div>
+                        
+                        <div className="absolute inset-x-0 bottom-0 z-10 p-2 text-white">
+                          <h3 className="text-sm font-bold text-center drop-shadow-md line-clamp-2">
+                            {category.name}
+                          </h3>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Lifestyle Banners */}
       <section className="py-16 container mx-auto px-4">
@@ -185,7 +189,8 @@ export default function Home() {
           </div>
         </section>
       )}
-       {/* Brand Promises */}
+      
+      {/* Brand Promises */}
       <section className="py-12 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
