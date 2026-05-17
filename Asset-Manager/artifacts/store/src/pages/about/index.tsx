@@ -9,9 +9,9 @@ export default function About() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-6">
             <Store className="w-8 h-8" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-black mb-6 text-foreground tracking-tight">عن متجر الرياض</h1>
+          <h1 className="text-4xl md:text-5xl font-black mb-6 text-foreground tracking-tight">عن متجر لمسات مول</h1>
           <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-            تأسس متجر الرياض برؤية واضحة: تقديم تجربة تسوق إلكتروني ترقى لتطلعات المستهلك السعودي من حيث الجودة، والتنوع، والموثوقية.
+            تأسس متجر لمسات مول برؤية واضحة: تقديم تجربة تسوق إلكتروني ترقى لتطلعات المستهلك السعودي من حيث الجودة، والتنوع، والموثوقية.
           </p>
         </div>
       </section>
@@ -66,7 +66,7 @@ export default function About() {
             <div className="flex flex-col items-center gap-3">
               <Phone className="w-8 h-8 text-primary" />
               <span className="font-semibold text-lg">خدمة العملاء</span>
-              <span className="text-muted-foreground" dir="ltr">9200 00000</span>
+              <span className="text-muted-foreground" dir="ltr">التواصل مع الدعم</span>
             </div>
             <div className="flex flex-col items-center gap-3">
               <Mail className="w-8 h-8 text-primary" />
