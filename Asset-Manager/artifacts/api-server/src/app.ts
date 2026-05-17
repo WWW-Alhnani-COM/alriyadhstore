@@ -4,8 +4,8 @@ import session from "express-session";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
-import pgSession from 'connect-pg-simple';
-import { Pool } from 'pg';
+const pgSession = require('connect-pg-simple');
+const { Pool } = require('pg');
 
 const app: Express = express();
 
