@@ -29,10 +29,15 @@ app.use(
 
 // إعدادات CORS المتقدمة للسماح بالجلسات عبر النطاقات
 app.use(cors({
-  origin: 'https://riyadhstore.vercel.app', // النطاق المسموح
-  credentials: true, // السماح بإرسال Cookies
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'], // الرؤوس المسموحة
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] // الطرق المسموحة
+  origin: (origin, callback) => {
+    // السماح لكل النطاقات
+    if (!origin) return callback(null, true);
+
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
 }));
 
 app.use(express.json({ limit: "2mb" }));
