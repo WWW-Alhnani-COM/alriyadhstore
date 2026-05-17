@@ -12,9 +12,9 @@ import { ShoppingCart, Eye } from "lucide-react";
 export default function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   
-  const { data: orders, isLoading } = useAdminListOrders({
-    status: statusFilter === "all" ? null : (statusFilter as any)
-  });
+const { data: orders, isLoading } = useAdminListOrders(
+  statusFilter !== "all" ? { status: statusFilter as any } : {}
+);
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, { label: string, color: string }> = {
