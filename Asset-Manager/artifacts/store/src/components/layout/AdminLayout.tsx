@@ -6,10 +6,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
 
 const navItems = [
-  { href: "/admin/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
-  { href: "/admin/orders", label: "الطلبات", icon: ShoppingCart },
-  { href: "/admin/products", label: "المنتجات", icon: ShoppingBag },
-  { href: "/admin/categories", label: "الأقسام", icon: Tags },
+  { href: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
+  { href: "/orders", label: "الطلبات", icon: ShoppingCart },
+  { href: "/products", label: "المنتجات", icon: ShoppingBag },
+  { href: "/categories", label: "الأقسام", icon: Tags },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
