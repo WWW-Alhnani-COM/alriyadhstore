@@ -50,7 +50,7 @@ export default function Contact() {
             </div>
           </div>
           
-          <div className="flex gap-4">
+          {/* <div className="flex gap-4">
             <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center flex-shrink-0">
               <Phone className="w-6 h-6" />
             </div>
@@ -59,7 +59,7 @@ export default function Contact() {
               <p className="text-muted-foreground font-mono" dir="ltr">9200 00000</p>
               <p className="text-muted-foreground font-mono" dir="ltr">+966 11 000 0000</p>
             </div>
-          </div>
+          </div> */}
           
           <div className="flex gap-4">
             <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center flex-shrink-0">
