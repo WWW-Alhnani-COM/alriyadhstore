@@ -25,6 +25,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Edit2, Trash2, ShoppingBag, Loader2, Search } from "lucide-react";
+import { ImageUpload } from "@/components/ImageUpload";
+
 
 const productSchema = z.object({
   name: z.string().min(2, "اسم المنتج يجب أن يكون حرفين على الأقل"),
@@ -205,13 +207,19 @@ const { data: productsData, isLoading } = useAdminListProducts(
                     )}/>
                   </div>
 
-                  <FormField control={form.control} name="image" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">رابط الصورة</FormLabel>
-                      <FormControl><Input placeholder="https://..." dir="ltr" className="bg-muted/50 text-left" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}/>
+               <FormField control={form.control} name="image" render={({ field }) => (
+  <FormItem>
+    <FormLabel className="font-bold">صورة المنتج</FormLabel>
+    <FormControl>
+      <ImageUpload
+        value={field.value}
+        onChange={field.onChange}
+      />
+    </FormControl>
+    <FormMessage />
+  </FormItem>
+)}/>
+                  
 
                   <FormField control={form.control} name="description" render={({ field }) => (
                     <FormItem>
