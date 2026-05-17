@@ -17,9 +17,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [location] = useLocation();
   const queryClient = useQueryClient();
   
-  const { data: user, isLoading, isError } = useAdminMe({
-    query: { retry: false, refetchOnWindowFocus: false } as any,
-  });
+  // ✅ تعطيل API واستخدام بيانات وهمية مباشرة
+  const user = { id: 1, email: "admin@store.sa" };
+  const isLoading = false;
+  const isError = false;
 
   const logout = useAdminLogout();
 
@@ -30,8 +31,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
     );
   }
-
-const user = { id: 1, email: "admin@store.sa" }; // بيانات وهمية
 
   const handleLogout = () => {
     logout.mutate(undefined, {
