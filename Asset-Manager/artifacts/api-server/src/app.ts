@@ -51,7 +51,6 @@ app.use(
       sameSite: "none",     // أساسي للجلسات عبر النطاقات
       secure: true,         // أساسي لـ HTTPS
       maxAge: 1000 * 60 * 60 * 24 * 7,
-      domain: ".onrender.com" // **التغيير الجوهري**: اجعل الـ Cookie متاحًا لجميع نطاقات onrender.com
     },
   }),
 );
