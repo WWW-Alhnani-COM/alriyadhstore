@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,7 +27,7 @@ import { toast } from "sonner";
 import { Plus, Edit2, Trash2, ShoppingBag, Loader2, Search, Star } from "lucide-react";
 import { MultiImageUpload } from "@/components/MultiImageUpload";
 
-// ✅ تحديث الـ Schema لدعم صور متعددة
+// ✅ Schema يدعم صور متعددة
 const productSchema = z.object({
   name: z.string().min(2, "اسم المنتج يجب أن يكون حرفين على الأقل"),
   description: z.string().min(1, "وصف المنتج مطلوب"),
@@ -48,7 +48,7 @@ export default function AdminProducts() {
   // دالة للحصول على المنتجات المميزة من localStorage
   const getFeaturedIds = (): number[] => {
     const saved = localStorage.getItem('featured_products');
-    return saved ? JSON.parse(saved) : [1, 3, 5];
+    return saved ? JSON.parse(saved) : [];
   };
 
   // دالة لتبديل حالة المنتج المميز
@@ -90,9 +90,16 @@ export default function AdminProducts() {
   });
 
   const onSubmit = (data: ProductValues) => {
+    // تحويل البيانات إلى الشكل المتوقع من API (أول صورة كصورة رئيسية)
+    const submitData = {
+      ...data,
+      image: data.images[0], // الصورة الأولى كصورة رئيسية
+      images: data.images,   // جميع الصور
+    };
+    
     if (editingId) {
       updateMutation.mutate(
-        { id: editingId, data: { ...data, image: data.images[0] } }, // للتوافق مع API القديم
+        { id: editingId, data: submitData },
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getAdminListProductsQueryKey() });
@@ -108,7 +115,7 @@ export default function AdminProducts() {
       );
     } else {
       createMutation.mutate(
-        { data: { ...data, image: data.images[0] } }, // للتوافق مع API القديم
+        { data: submitData },
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getAdminListProductsQueryKey() });
@@ -236,7 +243,7 @@ export default function AdminProducts() {
                     )}/>
                   </div>
 
-                  {/* ✅ حقل الصور المتعددة */}
+                  {/* ✅ رفع صور متعددة */}
                   <FormField control={form.control} name="images" render={({ field }) => (
                     <FormItem>
                       <FormLabel className="font-bold">صور المنتج</FormLabel>
@@ -258,31 +265,6 @@ export default function AdminProducts() {
                       <FormMessage />
                     </FormItem>
                   )}/>
-
-                  {/* ✅ حقل المنتج المميز */}
-                  <div className="rounded-lg border p-4 bg-muted/20">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <FormLabel className="font-bold flex items-center gap-2">
-                          <Star className="w-4 h-4 text-yellow-500" />
-                          منتج مميز
-                        </FormLabel>
-                        <div className="text-sm text-muted-foreground">
-                          عرض المنتج في قسم "منتجات مميزة" في الصفحة الرئيسية
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => editingId && toggleFeatured(editingId)}
-                        className="gap-2"
-                      >
-                        <Star className={`w-4 h-4 ${editingId && getFeaturedIds().includes(editingId) ? "fill-yellow-500 text-yellow-500" : ""}`} />
-                        {editingId && getFeaturedIds().includes(editingId) ? "إزالة من المميزات" : "إضافة للمميزات"}
-                      </Button>
-                    </div>
-                  </div>
 
                   <Button type="submit" className="w-full h-12 rounded-xl font-bold text-lg mt-4" disabled={createMutation.isPending || updateMutation.isPending}>
                     {(createMutation.isPending || updateMutation.isPending) ? <Loader2 className="w-5 h-5 animate-spin" /> : "حفظ المنتج"}
@@ -324,7 +306,7 @@ export default function AdminProducts() {
                   const images = product.images || [product.image];
                   return (
                     <TableRow key={product.id} className="hover:bg-muted/30">
-                      {/* ✅ عرض الصور المتعددة */}
+                      {/* عرض الصور المتعددة */}
                       <TableCell>
                         <div className="flex -space-x-2">
                           {images.slice(0, 3).map((img: string, idx: number) => (
