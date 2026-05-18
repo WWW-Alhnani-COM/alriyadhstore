@@ -27,7 +27,7 @@ import { toast } from "sonner";
 import { Plus, Edit2, Trash2, ShoppingBag, Loader2, Search, Star } from "lucide-react";
 import { MultiImageUpload } from "@/components/MultiImageUpload";
 
-// ✅ Schema يدعم صور متعددة
+// ✅ Schema يدعم صور متعددة (سيتم تخزينها كـ JSON في حقل image)
 const productSchema = z.object({
   name: z.string().min(2, "اسم المنتج يجب أن يكون حرفين على الأقل"),
   description: z.string().min(1, "وصف المنتج مطلوب"),
@@ -89,12 +89,34 @@ export default function AdminProducts() {
     },
   });
 
+  // ✅ تحويل JSON string إلى مصفوفة صور
+  const parseImages = (imageField: string | null | undefined): string[] => {
+    if (!imageField) return [];
+    try {
+      // محاولة تحليل JSON
+      const parsed = JSON.parse(imageField);
+      if (Array.isArray(parsed)) return parsed;
+      return [imageField];
+    } catch {
+      // إذا لم يكن JSON، فهي صورة واحدة
+      return [imageField];
+    }
+  };
+
+  // ✅ تحويل مصفوفة الصور إلى JSON string للتخزين
+  const stringifyImages = (images: string[]): string => {
+    return JSON.stringify(images);
+  };
+
   const onSubmit = (data: ProductValues) => {
-    // تحويل البيانات إلى الشكل المتوقع من API (أول صورة كصورة رئيسية)
+    // ✅ تخزين جميع الصور كـ JSON في حقل image
     const submitData = {
-      ...data,
-      image: data.images[0], // الصورة الأولى كصورة رئيسية
-      images: data.images,   // جميع الصور
+      name: data.name,
+      description: data.description,
+      price: data.price,
+      quantity: data.quantity,
+      categoryId: data.categoryId,
+      image: stringifyImages(data.images), // تخزين المصفوفة كـ JSON
     };
     
     if (editingId) {
@@ -132,13 +154,16 @@ export default function AdminProducts() {
   };
 
   const handleEdit = (product: any) => {
+    // ✅ استرجاع الصور من حقل image (JSON أو نص عادي)
+    const images = parseImages(product.image);
+    
     form.reset({
       name: product.name,
       description: product.description,
       price: product.price,
       quantity: product.quantity,
       categoryId: product.categoryId,
-      images: product.images || [product.image] // للتوافق مع البيانات القديمة
+      images: images,
     });
     setEditingId(product.id);
     setIsCreateOpen(true);
@@ -157,6 +182,11 @@ export default function AdminProducts() {
         }
       }
     );
+  };
+
+  // ✅ عرض الصور في الجدول
+  const getDisplayImages = (product: any): string[] => {
+    return parseImages(product.image);
   };
 
   return (
@@ -243,7 +273,7 @@ export default function AdminProducts() {
                     )}/>
                   </div>
 
-                  {/* ✅ رفع صور متعددة */}
+                  {/* رفع صور متعددة */}
                   <FormField control={form.control} name="images" render={({ field }) => (
                     <FormItem>
                       <FormLabel className="font-bold">صور المنتج</FormLabel>
@@ -303,7 +333,7 @@ export default function AdminProducts() {
                 </TableRow>
               ) : (
                 (productsData as any[])?.map((product) => {
-                  const images = product.images || [product.image];
+                  const images = getDisplayImages(product);
                   return (
                     <TableRow key={product.id} className="hover:bg-muted/30">
                       {/* عرض الصور المتعددة */}
