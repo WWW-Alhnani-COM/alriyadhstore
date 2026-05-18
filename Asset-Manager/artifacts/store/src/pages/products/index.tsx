@@ -10,6 +10,20 @@ import { formatCurrency } from "@/lib/formatters";
 import { SlidersHorizontal, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
+// ✅ دالة لاستخراج الصورة الأولى من JSON string أو من رابط عادي
+const getFirstImage = (imageField: string | null | undefined): string => {
+  if (!imageField) return "/placeholder-image.jpg";
+  try {
+    const parsed = JSON.parse(imageField);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed[0]; // إرجاع الصورة الأولى
+    }
+    return imageField;
+  } catch {
+    return imageField;
+  }
+};
+
 export default function Products() {
   const [searchParams] = useLocation();
   const urlParams = new URLSearchParams(window.location.search);
@@ -199,31 +213,36 @@ export default function Products() {
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
-                {productsData.items.map(product => (
-                  <Link key={product.id} href={`/products/${product.id}`}>
-                    <Card className="group overflow-hidden border-none shadow-sm hover:shadow-md transition-all duration-300 bg-card cursor-pointer h-full flex flex-col">
-                      <div className="relative aspect-[4/5] sm:aspect-square overflow-hidden bg-muted/30">
-                        <img 
-                          src={product.image} 
-                          alt={product.name} 
-                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                        />
-                        {product.quantity === 0 ? (
-                          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center">
-                            <Badge variant="outline" className="bg-background/80 text-foreground border-foreground/20 font-bold px-3 py-1">نفذت الكمية</Badge>
-                          </div>
-                        ) : product.quantity < 5 ? (
-                          <Badge variant="destructive" className="absolute top-2 right-2 font-medium">كمية محدودة</Badge>
-                        ) : null}
-                      </div>
-                      <CardContent className="p-3 sm:p-4 flex flex-col flex-grow">
-                        <div className="text-xs text-muted-foreground mb-1 line-clamp-1">{product.categoryName}</div>
-                        <h3 className="font-semibold text-sm sm:text-base text-foreground line-clamp-2 mb-2 group-hover:text-primary transition-colors">{product.name}</h3>
-                        <div className="mt-auto font-bold text-base sm:text-lg text-primary">{formatCurrency(product.price)}</div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
+                {productsData.items.map(product => {
+                  // ✅ استخدام الصورة الأولى فقط للعرض في بطاقة المنتج
+                  const displayImage = getFirstImage(product.image);
+                  
+                  return (
+                    <Link key={product.id} href={`/products/${product.id}`}>
+                      <Card className="group overflow-hidden border-none shadow-sm hover:shadow-md transition-all duration-300 bg-card cursor-pointer h-full flex flex-col">
+                        <div className="relative aspect-[4/5] sm:aspect-square overflow-hidden bg-muted/30">
+                          <img 
+                            src={displayImage} 
+                            alt={product.name} 
+                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                          />
+                          {product.quantity === 0 ? (
+                            <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center">
+                              <Badge variant="outline" className="bg-background/80 text-foreground border-foreground/20 font-bold px-3 py-1">نفذت الكمية</Badge>
+                            </div>
+                          ) : product.quantity < 5 ? (
+                            <Badge variant="destructive" className="absolute top-2 right-2 font-medium">كمية محدودة</Badge>
+                          ) : null}
+                        </div>
+                        <CardContent className="p-3 sm:p-4 flex flex-col flex-grow">
+                          <div className="text-xs text-muted-foreground mb-1 line-clamp-1">{product.categoryName}</div>
+                          <h3 className="font-semibold text-sm sm:text-base text-foreground line-clamp-2 mb-2 group-hover:text-primary transition-colors">{product.name}</h3>
+                          <div className="mt-auto font-bold text-base sm:text-lg text-primary">{formatCurrency(product.price)}</div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
               </div>
 
               {/* Pagination */}
@@ -241,7 +260,6 @@ export default function Products() {
                   <div className="flex gap-1 mx-4">
                     {Array.from({ length: productsData.totalPages }).map((_, i) => {
                       const p = i + 1;
-                      // Simple pagination logic for demo - show a few pages around current
                       if (productsData.totalPages > 7 && (p < page - 1 || p > page + 1) && p !== 1 && p !== productsData.totalPages) {
                         if (p === 2 || p === productsData.totalPages - 1) return <span key={p} className="px-2 text-muted-foreground">...</span>;
                         return null;
