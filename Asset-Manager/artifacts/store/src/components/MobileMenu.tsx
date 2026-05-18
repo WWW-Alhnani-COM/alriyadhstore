@@ -24,6 +24,7 @@ export function MobileMenu() {
   const [open, setOpen] = useState(false);
   const [location] = useLocation();
   const [cartItems, setCartItems] = useState(0);
+  const [favoriteCount, setFavoriteCount] = useState(0); // ✅ إضافة حالة عدد المفضلة
 
   // جلب عدد المنتجات في السلة
   useEffect(() => {
@@ -52,10 +53,28 @@ export function MobileMenu() {
     };
   }, []);
 
+  // ✅ جلب عدد المنتجات في المفضلة
+  useEffect(() => {
+    const updateFavorites = () => {
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      setFavoriteCount(favorites.length);
+    };
+
+    updateFavorites();
+    window.addEventListener("storage", updateFavorites);
+    window.addEventListener("favorites_update", updateFavorites);
+    
+    return () => {
+      window.removeEventListener("storage", updateFavorites);
+      window.removeEventListener("favorites_update", updateFavorites);
+    };
+  }, []);
+
   const mainNavItems = [
     { href: "/", label: "الرئيسية", icon: Home },
     { href: "/products", label: "المنتجات", icon: Package },
     { href: "/categories", label: "الأقسام", icon: Tag },
+    { href: "/favorites", label: "المفضلة", icon: Heart, badge: favoriteCount }, // ✅ إضافة المفضلة
     { href: "/cart", label: "سلة التسوق", icon: ShoppingCart, badge: cartItems },
   ];
 
@@ -205,13 +224,6 @@ export function MobileMenu() {
 
           {/* Footer */}
           <div className="p-4 pb-6">
-            {/* <Link 
-              href="/" 
-              onClick={handleClose}
-              className="flex items-center justify-between px-4 py-3 rounded-xl bg-muted/50 hover:bg-muted transition-all duration-200"
-            > */}
-              {/* <ArrowRight className="h-4 w-4 text-muted-foreground" />
-            </Link> */}
             <div className="text-center text-[10px] text-muted-foreground mt-4">
               © {new Date().getFullYear()} متجر لمسات مول
             </div>
