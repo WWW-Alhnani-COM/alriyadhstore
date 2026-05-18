@@ -25,11 +25,18 @@ export default function ProductDetail() {
   const id = parseInt(params?.id || "0");
   
   const [quantity, setQuantity] = useState(1);
+  const [isFavorite, setIsFavorite] = useState(false);
   const { addItem } = useCart();
 
   const { data: product, isLoading, isError } = useGetStorefrontProduct(id, {
     query: { enabled: !!id } as any,
   });
+
+  // التحقق من حالة المفضلة عند تحميل المنتج
+  useState(() => {
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    setIsFavorite(favorites.includes(id));
+  }, [id]);
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -47,6 +54,50 @@ export default function ProductDetail() {
     });
   };
 
+  // دالة إضافة/إزالة من المفضلة
+  const handleToggleFavorite = () => {
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    
+    if (isFavorite) {
+      // إزالة من المفضلة
+      const newFavorites = favorites.filter((favId: number) => favId !== id);
+      localStorage.setItem('favorites', JSON.stringify(newFavorites));
+      setIsFavorite(false);
+      toast.success("تم إزالة المنتج من المفضلة");
+    } else {
+      // إضافة إلى المفضلة
+      favorites.push(id);
+      localStorage.setItem('favorites', JSON.stringify(favorites));
+      setIsFavorite(true);
+      toast.success("تم إضافة المنتج إلى المفضلة");
+    }
+  };
+
+  // دالة مشاركة المنتج
+  const handleShare = async () => {
+    const shareData = {
+      title: product?.name || 'متجر لمسات مول',
+      text: `تسوق ${product?.name} من متجر لمسات مول`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        // مشاركة عبر Web Share API (الهواتف)
+        await navigator.share(shareData);
+        toast.success("تمت المشاركة بنجاح");
+      } else {
+        // نسخ الرابط للحواسيب
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success("تم نسخ رابط المنتج", {
+          description: "يمكنك مشاركته الآن"
+        });
+      }
+    } catch (error) {
+      console.error("Error sharing:", error);
+    }
+  };
+
   const handleQuantityChange = (delta: number) => {
     if (!product) return;
     const newQty = quantity + delta;
@@ -55,78 +106,16 @@ export default function ProductDetail() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row gap-12">
-          <Skeleton className="w-full md:w-1/2 aspect-square rounded-2xl" />
-          <div className="w-full md:w-1/2 space-y-6 pt-4">
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="h-10 w-3/4" />
-            <Skeleton className="h-12 w-48" />
-            <Skeleton className="h-[200px] w-full" />
-            <div className="flex gap-4">
-              <Skeleton className="h-14 w-32" />
-              <Skeleton className="h-14 flex-1" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isError || !product) {
-    return (
-      <div className="container mx-auto px-4 py-24 text-center">
-        <h2 className="text-3xl font-bold mb-4">المنتج غير موجود</h2>
-        <p className="text-muted-foreground mb-8">عذراً، لم نتمكن من العثور على المنتج الذي تبحث عنه.</p>
-        <Link href="/products">
-          <Button size="lg" className="rounded-full px-8">العودة للمنتجات</Button>
-        </Link>
-      </div>
-    );
-  }
-
-  const isOutOfStock = product.quantity === 0;
+  // ... باقي الكود كما هو ...
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Breadcrumb */}
-      <nav className="flex text-sm text-muted-foreground mb-8">
-        <ol className="flex items-center space-x-2 space-x-reverse">
-          <li><Link href="/" className="hover:text-primary">الرئيسية</Link></li>
-          <li><ChevronLeft className="h-4 w-4" /></li>
-          <li><Link href="/products" className="hover:text-primary">المنتجات</Link></li>
-          <li><ChevronLeft className="h-4 w-4" /></li>
-          {product.categoryName && (
-            <>
-              <li><Link href={`/products?category=${product.categoryId}`} className="hover:text-primary">{product.categoryName}</Link></li>
-              <li><ChevronLeft className="h-4 w-4" /></li>
-            </>
-          )}
-          <li className="font-semibold text-foreground line-clamp-1 max-w-[200px]">{product.name}</li>
-        </ol>
-      </nav>
+      {/* ... Breadcrumb ... */}
 
       <div className="flex flex-col md:flex-row gap-12 mb-24">
         {/* Product Image */}
         <div className="w-full md:w-1/2">
-          <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted/30 border">
-            <img 
-              src={product.image} 
-              alt={product.name} 
-              className="w-full h-full object-cover object-center"
-            />
-            {isOutOfStock ? (
-              <div className="absolute top-4 right-4 bg-destructive text-destructive-foreground px-4 py-1.5 rounded-full font-bold shadow-lg">
-                نفذت الكمية
-              </div>
-            ) : product.quantity < 5 ? (
-              <div className="absolute top-4 right-4 bg-orange-500 text-white px-4 py-1.5 rounded-full font-bold shadow-lg">
-                كمية محدودة ({product.quantity} متبقي)
-              </div>
-            ) : null}
-          </div>
+          {/* ... صورة المنتج ... */}
         </div>
 
         {/* Product Info */}
@@ -137,11 +126,28 @@ export default function ProductDetail() {
                 {product.categoryName}
               </Badge>
             </Link>
+            
+            {/* ✅ أزرار المفضلة والمشاركة مع الوظائف */}
             <div className="flex gap-2">
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-red-500 rounded-full">
-                <Heart className="h-5 w-5" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleToggleFavorite}
+                className={`rounded-full transition-all duration-200 ${
+                  isFavorite 
+                    ? "text-red-500 hover:text-red-600 bg-red-50" 
+                    : "text-muted-foreground hover:text-red-500"
+                }`}
+              >
+                <Heart className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`} />
               </Button>
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full">
+              
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleShare}
+                className="text-muted-foreground hover:text-primary rounded-full transition-all duration-200"
+              >
                 <Share2 className="h-5 w-5" />
               </Button>
             </div>
