@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"; // ✅ تأكد من import useEffect
+import { useState, useEffect } from "react";
 import { useRoute, Link } from "wouter";
 import { useGetStorefrontProduct } from "@workspace/api-client-react";
 import { useCart } from "@/hooks/useCart";
@@ -17,7 +17,8 @@ import {
   ShieldCheck, 
   RefreshCw,
   Share2,
-  Heart
+  Heart,
+  ChevronRight
 } from "lucide-react";
 
 export default function ProductDetail() {
@@ -26,6 +27,7 @@ export default function ProductDetail() {
   
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { addItem } = useCart();
 
   const { data: product, isLoading, isError } = useGetStorefrontProduct(id, {
@@ -34,12 +36,22 @@ export default function ProductDetail() {
 
   // ✅ تعريف isOutOfStock
   const isOutOfStock = product?.quantity === 0;
+  
+  // ✅ الحصول على مصفوفة الصور (للتوافق مع البيانات القديمة والجديدة)
+  const images = product?.images && product.images.length > 0 
+    ? product.images 
+    : product?.image ? [product.image] : [];
 
   // التحقق من حالة المفضلة عند تحميل المنتج
   useEffect(() => {
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
     setIsFavorite(favorites.includes(id));
   }, [id]);
+
+  // إعادة تعيين مؤشر الصورة عند تغيير المنتج
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [product?.id]);
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -48,7 +60,7 @@ export default function ProductDetail() {
       productId: product.id,
       name: product.name,
       price: product.price,
-      image: product.image,
+      image: images[0] || product.image,
       quantity,
     });
     
@@ -103,6 +115,14 @@ export default function ProductDetail() {
     }
   };
 
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -154,13 +174,49 @@ export default function ProductDetail() {
       </nav>
 
       <div className="flex flex-col md:flex-row gap-12 mb-24">
+        {/* Product Image Gallery */}
         <div className="w-full md:w-1/2">
-          <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted/30 border">
+          <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted/30 border group">
             <img 
-              src={product.image} 
+              src={images[currentImageIndex]} 
               alt={product.name} 
               className="w-full h-full object-cover object-center"
             />
+            
+            {/* أزرار التنقل بين الصور (للمعرض) */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={prevImage}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition opacity-0 group-hover:opacity-100"
+                  aria-label="الصورة السابقة"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition opacity-0 group-hover:opacity-100"
+                  aria-label="الصورة التالية"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                
+                {/* مؤشر الصور */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  {images.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentImageIndex(idx)}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        idx === currentImageIndex ? "bg-white w-4" : "bg-white/50"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* حالة المنتج */}
             {isOutOfStock ? (
               <div className="absolute top-4 right-4 bg-destructive text-destructive-foreground px-4 py-1.5 rounded-full font-bold shadow-lg">
                 نفذت الكمية
@@ -171,8 +227,26 @@ export default function ProductDetail() {
               </div>
             ) : null}
           </div>
+
+          {/* الصور المصغرة (إذا كان هناك أكثر من صورة) */}
+          {images.length > 1 && (
+            <div className="flex gap-2 mt-4 overflow-x-auto pb-2 justify-center">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentImageIndex(idx)}
+                  className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${
+                    idx === currentImageIndex ? "border-primary" : "border-transparent"
+                  }`}
+                >
+                  <img src={img} alt={`${product.name} - صورة ${idx + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
+        {/* Product Info */}
         <div className="w-full md:w-1/2 flex flex-col">
           <div className="mb-2 flex items-center justify-between">
             <Link href={`/products?category=${product.categoryId}`}>
