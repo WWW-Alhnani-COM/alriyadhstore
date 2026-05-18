@@ -21,6 +21,22 @@ import {
   ChevronRight
 } from "lucide-react";
 
+// ✅ دالة لتحويل JSON string إلى مصفوفة صور
+const parseImages = (imageField: string | null | undefined): string[] => {
+  if (!imageField) return [];
+  try {
+    // محاولة تحليل JSON
+    const parsed = JSON.parse(imageField);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed;
+    }
+    return [imageField];
+  } catch {
+    // إذا لم يكن JSON، فهي صورة واحدة
+    return [imageField];
+  }
+};
+
 export default function ProductDetail() {
   const [, params] = useRoute("/products/:id");
   const id = parseInt(params?.id || "0");
@@ -37,10 +53,8 @@ export default function ProductDetail() {
   // ✅ تعريف isOutOfStock
   const isOutOfStock = product?.quantity === 0;
   
-  // ✅ الحصول على مصفوفة الصور (للتوافق مع البيانات القديمة والجديدة)
-  const images = product?.images && product.images.length > 0 
-    ? product.images 
-    : product?.image ? [product.image] : [];
+  // ✅ الحصول على مصفوفة الصور باستخدام دالة parseImages
+  const images = parseImages(product?.image);
 
   // التحقق من حالة المفضلة عند تحميل المنتج
   useEffect(() => {
