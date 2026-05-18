@@ -24,20 +24,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, ShoppingBag, Loader2, Search, Star, X } from "lucide-react";
+import { Plus, Edit2, Trash2, ShoppingBag, Loader2, Search, Star } from "lucide-react";
 import { MultiImageUpload } from "@/components/MultiImageUpload";
 
-// قائمة الألوان الجاهزة
-const COLOR_PRESETS = [
-  { name: "أحمر", value: "#ef4444", code: "RED" },
-  { name: "أزرق", value: "#3b82f6", code: "BLUE" },
-  { name: "أخضر", value: "#22c55e", code: "GREEN" },
-  { name: "أسود", value: "#000000", code: "BLACK" },
-  { name: "أبيض", value: "#ffffff", code: "WHITE" },
-];
-
-const SIZE_PRESETS = ["XS", "S", "M", "L", "XL"];
-
+// ✅ Schema يدعم صور متعددة (سيتم تخزينها كـ JSON في حقل image)
 const productSchema = z.object({
   name: z.string().min(2, "اسم المنتج يجب أن يكون حرفين على الأقل"),
   description: z.string().min(1, "وصف المنتج مطلوب"),
@@ -45,8 +35,6 @@ const productSchema = z.object({
   quantity: z.coerce.number().min(0, "الكمية يجب أن تكون رقماً موجباً"),
   categoryId: z.coerce.number().min(1, "الرجاء اختيار القسم"),
   images: z.array(z.string()).min(1, "يجب إضافة صورة واحدة على الأقل"),
-  sizes: z.string().optional(),
-  colors: z.string().optional(),
 });
 
 type ProductValues = z.infer<typeof productSchema>;
@@ -56,16 +44,17 @@ export default function AdminProducts() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
-  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
 
+  // دالة للحصول على المنتجات المميزة من localStorage
   const getFeaturedIds = (): number[] => {
     const saved = localStorage.getItem('featured_products');
     return saved ? JSON.parse(saved) : [];
   };
 
+  // دالة لتبديل حالة المنتج المميز
   const toggleFeatured = (productId: number) => {
     let featuredIds = getFeaturedIds();
+    
     if (featuredIds.includes(productId)) {
       featuredIds = featuredIds.filter(id => id !== productId);
       toast.success("تمت إزالة المنتج من المميزات");
@@ -73,6 +62,7 @@ export default function AdminProducts() {
       featuredIds.push(productId);
       toast.success("تمت إضافة المنتج للمميزات");
     }
+    
     localStorage.setItem('featured_products', JSON.stringify(featuredIds));
     queryClient.invalidateQueries({ queryKey: getAdminListProductsQueryKey() });
   };
@@ -95,37 +85,38 @@ export default function AdminProducts() {
       price: 0, 
       quantity: 0, 
       categoryId: 0, 
-      images: [],
-      sizes: "",
-      colors: "",
+      images: [] 
     },
   });
 
+  // ✅ تحويل JSON string إلى مصفوفة صور
   const parseImages = (imageField: string | null | undefined): string[] => {
     if (!imageField) return [];
     try {
+      // محاولة تحليل JSON
       const parsed = JSON.parse(imageField);
       if (Array.isArray(parsed)) return parsed;
       return [imageField];
     } catch {
+      // إذا لم يكن JSON، فهي صورة واحدة
       return [imageField];
     }
   };
 
+  // ✅ تحويل مصفوفة الصور إلى JSON string للتخزين
   const stringifyImages = (images: string[]): string => {
     return JSON.stringify(images);
   };
 
   const onSubmit = (data: ProductValues) => {
+    // ✅ تخزين جميع الصور كـ JSON في حقل image
     const submitData = {
       name: data.name,
       description: data.description,
       price: data.price,
       quantity: data.quantity,
       categoryId: data.categoryId,
-      image: stringifyImages(data.images),
-      sizes: JSON.stringify(selectedSizes),
-      colors: JSON.stringify(selectedColors),
+      image: stringifyImages(data.images), // تخزين المصفوفة كـ JSON
     };
     
     if (editingId) {
@@ -138,8 +129,6 @@ export default function AdminProducts() {
             setIsCreateOpen(false);
             setEditingId(null);
             form.reset();
-            setSelectedSizes([]);
-            setSelectedColors([]);
           },
           onError: (error: any) => {
             toast.error("فشل التحديث", { description: error.response?.data?.error || "حدث خطأ غير متوقع" });
@@ -155,8 +144,6 @@ export default function AdminProducts() {
             toast.success("تم إضافة المنتج بنجاح");
             setIsCreateOpen(false);
             form.reset();
-            setSelectedSizes([]);
-            setSelectedColors([]);
           },
           onError: (error: any) => {
             toast.error("فشل الإضافة", { description: error.response?.data?.error || "حدث خطأ غير متوقع" });
@@ -167,13 +154,8 @@ export default function AdminProducts() {
   };
 
   const handleEdit = (product: any) => {
+    // ✅ استرجاع الصور من حقل image (JSON أو نص عادي)
     const images = parseImages(product.image);
-    let sizes: string[] = [];
-    let colors: string[] = [];
-    try {
-      sizes = JSON.parse(product.sizes || "[]");
-      colors = JSON.parse(product.colors || "[]");
-    } catch {}
     
     form.reset({
       name: product.name,
@@ -183,8 +165,6 @@ export default function AdminProducts() {
       categoryId: product.categoryId,
       images: images,
     });
-    setSelectedSizes(sizes);
-    setSelectedColors(colors);
     setEditingId(product.id);
     setIsCreateOpen(true);
   };
@@ -204,18 +184,7 @@ export default function AdminProducts() {
     );
   };
 
-  const toggleSize = (size: string) => {
-    setSelectedSizes(prev =>
-      prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]
-    );
-  };
-
-  const toggleColor = (color: string) => {
-    setSelectedColors(prev =>
-      prev.includes(color) ? prev.filter(c => c !== color) : [...prev, color]
-    );
-  };
-
+  // ✅ عرض الصور في الجدول
   const getDisplayImages = (product: any): string[] => {
     return parseImages(product.image);
   };
@@ -248,9 +217,7 @@ export default function AdminProducts() {
             setIsCreateOpen(open);
             if (!open) {
               setEditingId(null);
-              form.reset();
-              setSelectedSizes([]);
-              setSelectedColors([]);
+              form.reset({ name: "", description: "", price: 0, quantity: 0, categoryId: 0, images: [] });
             }
           }}>
             <DialogTrigger asChild>
@@ -306,6 +273,7 @@ export default function AdminProducts() {
                     )}/>
                   </div>
 
+                  {/* رفع صور متعددة */}
                   <FormField control={form.control} name="images" render={({ field }) => (
                     <FormItem>
                       <FormLabel className="font-bold">صور المنتج</FormLabel>
@@ -319,61 +287,6 @@ export default function AdminProducts() {
                       <FormMessage />
                     </FormItem>
                   )}/>
-
-                  {/* الأحجام */}
-                  <div className="border rounded-lg p-4 space-y-4">
-                    <FormLabel className="font-bold">الأحجام المتوفرة</FormLabel>
-                    <div className="flex flex-wrap gap-2">
-                      {SIZE_PRESETS.map((size) => (
-                        <Button
-                          key={size}
-                          type="button"
-                          variant={selectedSizes.includes(size) ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => toggleSize(size)}
-                          className="rounded-full"
-                        >
-                          {size}
-                        </Button>
-                      ))}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedSizes.map((size) => (
-                        <Badge key={size} variant="secondary" className="px-3 py-1">
-                          {size}
-                          <X className="w-3 h-3 mr-1 cursor-pointer" onClick={() => toggleSize(size)} />
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* الألوان */}
-                  <div className="border rounded-lg p-4 space-y-4">
-                    <FormLabel className="font-bold">الألوان المتوفرة</FormLabel>
-                    <div className="flex flex-wrap gap-2">
-                      {COLOR_PRESETS.map((color) => (
-                        <Button
-                          key={color.code}
-                          type="button"
-                          variant={selectedColors.includes(color.name) ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => toggleColor(color.name)}
-                          className="gap-2"
-                        >
-                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: color.value }} />
-                          {color.name}
-                        </Button>
-                      ))}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedColors.map((color) => (
-                        <Badge key={color} variant="secondary" className="px-3 py-1">
-                          {color}
-                          <X className="w-3 h-3 mr-1 cursor-pointer" onClick={() => toggleColor(color)} />
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
 
                   <FormField control={form.control} name="description" render={({ field }) => (
                     <FormItem>
@@ -423,6 +336,7 @@ export default function AdminProducts() {
                   const images = getDisplayImages(product);
                   return (
                     <TableRow key={product.id} className="hover:bg-muted/30">
+                      {/* عرض الصور المتعددة */}
                       <TableCell>
                         <div className="flex -space-x-2">
                           {images.slice(0, 3).map((img: string, idx: number) => (
@@ -453,6 +367,7 @@ export default function AdminProducts() {
                         )}
                       </TableCell>
                       
+                      {/* زر التمييز */}
                       <TableCell className="text-center">
                         <Button
                           variant="ghost"
