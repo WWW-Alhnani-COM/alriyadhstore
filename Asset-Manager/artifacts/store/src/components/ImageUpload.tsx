@@ -1,7 +1,7 @@
 // components/MultiImageUpload.tsx
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { X, Upload, Loader2, Image as ImageIcon } from "lucide-react";
+import { X, Upload, Loader2 } from "lucide-react";
 
 interface MultiImageUploadProps {
   value?: string[];
@@ -34,7 +34,6 @@ export function MultiImageUpload({ value = [], onChange, maxImages = 5 }: MultiI
         continue;
       }
 
-      // تحويل إلى Base64
       const reader = new FileReader();
       const base64 = await new Promise<string>((resolve) => {
         reader.onloadend = () => resolve(reader.result as string);
