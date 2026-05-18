@@ -18,6 +18,7 @@ import OrderSuccess from "@/pages/order-success/index";
 import Categories from "@/pages/categories/index";
 import About from "@/pages/about/index";
 import Contact from "@/pages/contact/index";
+import Favorites from "@/pages/favorites/index"; // ✅ إضافة استيراد صفحة المفضلة
 
 import AdminLogin from "@/pages/admin/login";
 import AdminDashboard from "@/pages/admin/dashboard";
@@ -33,21 +34,22 @@ function Router() {
     <Switch>
       <Route path="/admin/login" component={AdminLogin} />
       
-     <Route path="/admin" nest>
-  <ProtectedRoute>
-    <AdminLayout>
-      <Switch>
-        <Route path="/" component={AdminDashboard} />
-        <Route path="/dashboard" component={AdminDashboard} />
-        <Route path="/categories" component={AdminCategories} />
-        <Route path="/products" component={AdminProducts} />
-        <Route path="/orders" component={AdminOrders} />
-        <Route path="/orders/:id" component={AdminOrderDetail} />
-        <Route component={NotFound} />
-      </Switch>
-    </AdminLayout>
-  </ProtectedRoute>
-</Route>
+      <Route path="/admin" nest>
+        <ProtectedRoute>
+          <AdminLayout>
+            <Switch>
+              <Route path="/" component={AdminDashboard} />
+              <Route path="/dashboard" component={AdminDashboard} />
+              <Route path="/categories" component={AdminCategories} />
+              <Route path="/products" component={AdminProducts} />
+              <Route path="/orders" component={AdminOrders} />
+              <Route path="/orders/:id" component={AdminOrderDetail} />
+              <Route component={NotFound} />
+            </Switch>
+          </AdminLayout>
+        </ProtectedRoute>
+      </Route>
+      
       <Route path="/" nest>
         <StoreLayout>
           <Switch>
@@ -60,6 +62,7 @@ function Router() {
             <Route path="/order/success/:id" component={OrderSuccess} />
             <Route path="/about" component={About} />
             <Route path="/contact" component={Contact} />
+            <Route path="/favorites" component={Favorites} />
             <Route component={NotFound} />
           </Switch>
         </StoreLayout>
