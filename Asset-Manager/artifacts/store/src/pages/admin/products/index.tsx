@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,16 +25,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Edit2, Trash2, ShoppingBag, Loader2, Search, Star } from "lucide-react";
-import { ImageUpload } from "@/components/ImageUpload";
+import { MultiImageUpload } from "@/components/MultiImageUpload";
 
-
+// ✅ تحديث الـ Schema لدعم صور متعددة
 const productSchema = z.object({
   name: z.string().min(2, "اسم المنتج يجب أن يكون حرفين على الأقل"),
   description: z.string().min(1, "وصف المنتج مطلوب"),
   price: z.coerce.number().min(0, "السعر يجب أن يكون رقماً موجباً"),
   quantity: z.coerce.number().min(0, "الكمية يجب أن تكون رقماً موجباً"),
   categoryId: z.coerce.number().min(1, "الرجاء اختيار القسم"),
-  image: z.string().url("يجب إدخال رابط صورة صحيح"),
+  images: z.array(z.string()).min(1, "يجب إضافة صورة واحدة على الأقل"),
 });
 
 type ProductValues = z.infer<typeof productSchema>;
@@ -79,13 +79,20 @@ export default function AdminProducts() {
 
   const form = useForm<ProductValues>({
     resolver: zodResolver(productSchema),
-    defaultValues: { name: "", description: "", price: 0, quantity: 0, categoryId: 0, image: "" },
+    defaultValues: { 
+      name: "", 
+      description: "", 
+      price: 0, 
+      quantity: 0, 
+      categoryId: 0, 
+      images: [] 
+    },
   });
 
   const onSubmit = (data: ProductValues) => {
     if (editingId) {
       updateMutation.mutate(
-        { id: editingId, data },
+        { id: editingId, data: { ...data, image: data.images[0] } }, // للتوافق مع API القديم
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getAdminListProductsQueryKey() });
@@ -101,7 +108,7 @@ export default function AdminProducts() {
       );
     } else {
       createMutation.mutate(
-        { data },
+        { data: { ...data, image: data.images[0] } }, // للتوافق مع API القديم
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getAdminListProductsQueryKey() });
@@ -124,7 +131,7 @@ export default function AdminProducts() {
       price: product.price,
       quantity: product.quantity,
       categoryId: product.categoryId,
-      image: product.image
+      images: product.images || [product.image] // للتوافق مع البيانات القديمة
     });
     setEditingId(product.id);
     setIsCreateOpen(true);
@@ -173,7 +180,7 @@ export default function AdminProducts() {
             setIsCreateOpen(open);
             if (!open) {
               setEditingId(null);
-              form.reset({ name: "", description: "", price: 0, quantity: 0, categoryId: 0, image: "" });
+              form.reset({ name: "", description: "", price: 0, quantity: 0, categoryId: 0, images: [] });
             }
           }}>
             <DialogTrigger asChild>
@@ -181,7 +188,7 @@ export default function AdminProducts() {
                 <Plus className="w-5 h-5" /> إضافة منتج
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold">{editingId ? "تعديل منتج" : "إضافة منتج جديد"}</DialogTitle>
               </DialogHeader>
@@ -229,19 +236,20 @@ export default function AdminProducts() {
                     )}/>
                   </div>
 
-                  <FormField control={form.control} name="image" render={({ field }) => (
+                  {/* ✅ حقل الصور المتعددة */}
+                  <FormField control={form.control} name="images" render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-bold">صورة المنتج</FormLabel>
+                      <FormLabel className="font-bold">صور المنتج</FormLabel>
                       <FormControl>
-                        <ImageUpload
+                        <MultiImageUpload
                           value={field.value}
                           onChange={field.onChange}
+                          maxImages={5}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}/>
-                  
 
                   <FormField control={form.control} name="description" render={({ field }) => (
                     <FormItem>
@@ -250,6 +258,31 @@ export default function AdminProducts() {
                       <FormMessage />
                     </FormItem>
                   )}/>
+
+                  {/* ✅ حقل المنتج المميز */}
+                  <div className="rounded-lg border p-4 bg-muted/20">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <FormLabel className="font-bold flex items-center gap-2">
+                          <Star className="w-4 h-4 text-yellow-500" />
+                          منتج مميز
+                        </FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          عرض المنتج في قسم "منتجات مميزة" في الصفحة الرئيسية
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => editingId && toggleFeatured(editingId)}
+                        className="gap-2"
+                      >
+                        <Star className={`w-4 h-4 ${editingId && getFeaturedIds().includes(editingId) ? "fill-yellow-500 text-yellow-500" : ""}`} />
+                        {editingId && getFeaturedIds().includes(editingId) ? "إزالة من المميزات" : "إضافة للمميزات"}
+                      </Button>
+                    </div>
+                  </div>
 
                   <Button type="submit" className="w-full h-12 rounded-xl font-bold text-lg mt-4" disabled={createMutation.isPending || updateMutation.isPending}>
                     {(createMutation.isPending || updateMutation.isPending) ? <Loader2 className="w-5 h-5 animate-spin" /> : "حفظ المنتج"}
@@ -270,7 +303,7 @@ export default function AdminProducts() {
           <Table>
             <TableHeader className="bg-muted/30">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-16 font-bold py-4">صورة</TableHead>
+                <TableHead className="w-24 font-bold py-4">الصور</TableHead>
                 <TableHead className="font-bold py-4">المنتج</TableHead>
                 <TableHead className="font-bold py-4">القسم</TableHead>
                 <TableHead className="font-bold py-4">السعر</TableHead>
@@ -287,72 +320,85 @@ export default function AdminProducts() {
                   </TableCell>
                 </TableRow>
               ) : (
-                (productsData as any[])?.map((product) => (
-                  <TableRow key={product.id} className="hover:bg-muted/30">
-                    <TableCell>
-                      <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted border">
-                        <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-bold line-clamp-1">{product.name}</div>
-                      <div className="text-xs text-muted-foreground">ID: {product.id}</div>
-                    </TableCell>
-                    <TableCell><Badge variant="secondary" className="font-medium">{product.categoryName}</Badge></TableCell>
-                    <TableCell className="font-bold text-primary">{formatCurrency(product.price)}</TableCell>
-                    <TableCell className="text-center">
-                      {product.quantity === 0 ? (
-                        <Badge variant="destructive" className="font-bold">نفذت الكمية</Badge>
-                      ) : product.quantity < 10 ? (
-                        <Badge className="bg-amber-100 text-amber-800 border-none font-bold hover:bg-amber-100">{product.quantity}</Badge>
-                      ) : (
-                        <Badge variant="outline" className="font-bold border-none bg-muted">{product.quantity}</Badge>
-                      )}
-                    </TableCell>
-                    
-                    {/* زر التمييز */}
-                    <TableCell className="text-center">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => toggleFeatured(product.id)}
-                        className={getFeaturedIds().includes(product.id) ? "text-yellow-500 hover:text-yellow-600" : "text-gray-400 hover:text-yellow-500"}
-                      >
-                        <Star className={`w-5 h-5 ${getFeaturedIds().includes(product.id) ? "fill-yellow-500" : ""}`} />
-                      </Button>
-                    </TableCell>
-                    
-                    <TableCell className="text-left">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => handleEdit(product)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                          <Edit2 className="w-4 h-4" />
+                (productsData as any[])?.map((product) => {
+                  const images = product.images || [product.image];
+                  return (
+                    <TableRow key={product.id} className="hover:bg-muted/30">
+                      {/* ✅ عرض الصور المتعددة */}
+                      <TableCell>
+                        <div className="flex -space-x-2">
+                          {images.slice(0, 3).map((img: string, idx: number) => (
+                            <div key={idx} className="w-8 h-8 rounded-full overflow-hidden bg-muted border-2 border-background">
+                              <img src={img} alt="" className="w-full h-full object-cover" />
+                            </div>
+                          ))}
+                          {images.length > 3 && (
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold border-2 border-background">
+                              +{images.length - 3}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-bold line-clamp-1">{product.name}</div>
+                        <div className="text-xs text-muted-foreground">ID: {product.id}</div>
+                      </TableCell>
+                      <TableCell><Badge variant="secondary" className="font-medium">{product.categoryName}</Badge></TableCell>
+                      <TableCell className="font-bold text-primary">{formatCurrency(product.price)}</TableCell>
+                      <TableCell className="text-center">
+                        {product.quantity === 0 ? (
+                          <Badge variant="destructive" className="font-bold">نفذت الكمية</Badge>
+                        ) : product.quantity < 10 ? (
+                          <Badge className="bg-amber-100 text-amber-800 border-none font-bold hover:bg-amber-100">{product.quantity}</Badge>
+                        ) : (
+                          <Badge variant="outline" className="font-bold border-none bg-muted">{product.quantity}</Badge>
+                        )}
+                      </TableCell>
+                      
+                      {/* زر التمييز */}
+                      <TableCell className="text-center">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => toggleFeatured(product.id)}
+                          className={getFeaturedIds().includes(product.id) ? "text-yellow-500 hover:text-yellow-600" : "text-gray-400 hover:text-yellow-500"}
+                        >
+                          <Star className={`w-5 h-5 ${getFeaturedIds().includes(product.id) ? "fill-yellow-500" : ""}`} />
                         </Button>
-                        
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>هل أنت متأكد من الحذف؟</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                سيتم حذف منتج "{product.name}" نهائياً. لا يمكن التراجع عن هذا الإجراء.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter className="gap-2 sm:gap-0">
-                              <AlertDialogCancel className="mt-0">إلغاء</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(product.id)} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
-                                حذف
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                      </TableCell>
+                      
+                      <TableCell className="text-left">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(product)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>هل أنت متأكد من الحذف؟</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  سيتم حذف منتج "{product.name}" نهائياً. لا يمكن التراجع عن هذا الإجراء.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter className="gap-2 sm:gap-0">
+                                <AlertDialogCancel className="mt-0">إلغاء</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(product.id)} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+                                  حذف
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
