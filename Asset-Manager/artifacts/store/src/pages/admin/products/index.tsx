@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { 
@@ -27,27 +27,17 @@ import { toast } from "sonner";
 import { Plus, Edit2, Trash2, ShoppingBag, Loader2, Search, Star, X } from "lucide-react";
 import { MultiImageUpload } from "@/components/MultiImageUpload";
 
-// ✅ قائمة الألوان الجاهزة
+// قائمة الألوان الجاهزة
 const COLOR_PRESETS = [
   { name: "أحمر", value: "#ef4444", code: "RED" },
   { name: "أزرق", value: "#3b82f6", code: "BLUE" },
   { name: "أخضر", value: "#22c55e", code: "GREEN" },
-  { name: "أصفر", value: "#eab308", code: "YELLOW" },
   { name: "أسود", value: "#000000", code: "BLACK" },
   { name: "أبيض", value: "#ffffff", code: "WHITE" },
-  { name: "رمادي", value: "#9ca3af", code: "GRAY" },
-  { name: "ذهبي", value: "#fbbf24", code: "GOLD" },
-  { name: "فضي", value: "#c0c0c0", code: "SILVER" },
-  { name: "وردي", value: "#f472b6", code: "PINK" },
-  { name: "بنفسجي", value: "#a855f7", code: "PURPLE" },
-  { name: "برتقالي", value: "#f97316", code: "ORANGE" },
 ];
 
-// ✅ قائمة الأحجام الجاهزة
-const SIZE_PRESETS = ["XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL"];
-const MEASUREMENT_PRESETS = ["cm", "m", "inch", "kg", "g", "L", "ml"];
+const SIZE_PRESETS = ["XS", "S", "M", "L", "XL"];
 
-// ✅ Schema كامل
 const productSchema = z.object({
   name: z.string().min(2, "اسم المنتج يجب أن يكون حرفين على الأقل"),
   description: z.string().min(1, "وصف المنتج مطلوب"),
@@ -55,17 +45,8 @@ const productSchema = z.object({
   quantity: z.coerce.number().min(0, "الكمية يجب أن تكون رقماً موجباً"),
   categoryId: z.coerce.number().min(1, "الرجاء اختيار القسم"),
   images: z.array(z.string()).min(1, "يجب إضافة صورة واحدة على الأقل"),
-  sizes: z.array(z.string()).optional(),
-  measurements: z.array(z.object({
-    name: z.string(),
-    value: z.string(),
-    unit: z.string(),
-  })).optional(),
-  colors: z.array(z.object({
-    name: z.string(),
-    code: z.string(),
-    hex: z.string(),
-  })).optional(),
+  sizes: z.string().optional(),
+  colors: z.string().optional(),
 });
 
 type ProductValues = z.infer<typeof productSchema>;
@@ -75,7 +56,8 @@ export default function AdminProducts() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
-  const [customColor, setCustomColor] = useState("");
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
 
   const getFeaturedIds = (): number[] => {
     const saved = localStorage.getItem('featured_products');
@@ -114,80 +96,36 @@ export default function AdminProducts() {
       quantity: 0, 
       categoryId: 0, 
       images: [],
-      sizes: [],
-      measurements: [],
-      colors: [],
+      sizes: "",
+      colors: "",
     },
   });
 
-  const { fields: sizeFields, append: addSize, remove: removeSize } = useFieldArray({
-    control: form.control,
-    name: "sizes",
-  });
-
-  const { fields: colorFields, append: addColor, remove: removeColor } = useFieldArray({
-    control: form.control,
-    name: "colors",
-  });
-
-  const { fields: measurementFields, append: addMeasurement, remove: removeMeasurement } = useFieldArray({
-    control: form.control,
-    name: "measurements",
-  });
-
-  // تخزين كل البيانات في حقل image كـ JSON واحد
-  const parseProductData = (imageField: string | null | undefined): {
-    images: string[];
-    sizes: string[];
-    colors: { name: string; code: string; hex: string }[];
-    measurements: { name: string; value: string; unit: string }[];
-  } => {
-    if (!imageField) {
-      return { images: [], sizes: [], colors: [], measurements: [] };
-    }
+  const parseImages = (imageField: string | null | undefined): string[] => {
+    if (!imageField) return [];
     try {
       const parsed = JSON.parse(imageField);
-      if (!Array.isArray(parsed) && typeof parsed === 'object') {
-        return {
-          images: parsed.images || [],
-          sizes: parsed.sizes || [],
-          colors: parsed.colors || [],
-          measurements: parsed.measurements || [],
-        };
-      }
-      if (Array.isArray(parsed)) {
-        return { images: parsed, sizes: [], colors: [], measurements: [] };
-      }
-      return { images: [imageField], sizes: [], colors: [], measurements: [] };
+      if (Array.isArray(parsed)) return parsed;
+      return [imageField];
     } catch {
-      return { images: [imageField], sizes: [], colors: [], measurements: [] };
+      return [imageField];
     }
   };
 
-  const stringifyProductData = (data: {
-    images: string[];
-    sizes: string[];
-    colors: { name: string; code: string; hex: string }[];
-    measurements: { name: string; value: string; unit: string }[];
-  }): string => {
-    return JSON.stringify(data);
+  const stringifyImages = (images: string[]): string => {
+    return JSON.stringify(images);
   };
 
   const onSubmit = (data: ProductValues) => {
-    const productData = {
-      images: data.images,
-      sizes: data.sizes || [],
-      colors: data.colors || [],
-      measurements: data.measurements || [],
-    };
-    
     const submitData = {
       name: data.name,
       description: data.description,
       price: data.price,
       quantity: data.quantity,
       categoryId: data.categoryId,
-      image: stringifyProductData(productData),
+      image: stringifyImages(data.images),
+      sizes: JSON.stringify(selectedSizes),
+      colors: JSON.stringify(selectedColors),
     };
     
     if (editingId) {
@@ -200,6 +138,8 @@ export default function AdminProducts() {
             setIsCreateOpen(false);
             setEditingId(null);
             form.reset();
+            setSelectedSizes([]);
+            setSelectedColors([]);
           },
           onError: (error: any) => {
             toast.error("فشل التحديث", { description: error.response?.data?.error || "حدث خطأ غير متوقع" });
@@ -215,6 +155,8 @@ export default function AdminProducts() {
             toast.success("تم إضافة المنتج بنجاح");
             setIsCreateOpen(false);
             form.reset();
+            setSelectedSizes([]);
+            setSelectedColors([]);
           },
           onError: (error: any) => {
             toast.error("فشل الإضافة", { description: error.response?.data?.error || "حدث خطأ غير متوقع" });
@@ -225,7 +167,13 @@ export default function AdminProducts() {
   };
 
   const handleEdit = (product: any) => {
-    const { images, sizes, colors, measurements } = parseProductData(product.image);
+    const images = parseImages(product.image);
+    let sizes: string[] = [];
+    let colors: string[] = [];
+    try {
+      sizes = JSON.parse(product.sizes || "[]");
+      colors = JSON.parse(product.colors || "[]");
+    } catch {}
     
     form.reset({
       name: product.name,
@@ -234,10 +182,9 @@ export default function AdminProducts() {
       quantity: product.quantity,
       categoryId: product.categoryId,
       images: images,
-      sizes: sizes,
-      colors: colors,
-      measurements: measurements,
     });
+    setSelectedSizes(sizes);
+    setSelectedColors(colors);
     setEditingId(product.id);
     setIsCreateOpen(true);
   };
@@ -257,15 +204,20 @@ export default function AdminProducts() {
     );
   };
 
-  const getDisplayImages = (product: any): string[] => {
-    return parseProductData(product.image).images;
+  const toggleSize = (size: string) => {
+    setSelectedSizes(prev =>
+      prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]
+    );
   };
 
-  const handleAddCustomColor = () => {
-    if (customColor.trim()) {
-      addColor({ name: customColor, code: customColor.toUpperCase(), hex: "#cccccc" });
-      setCustomColor("");
-    }
+  const toggleColor = (color: string) => {
+    setSelectedColors(prev =>
+      prev.includes(color) ? prev.filter(c => c !== color) : [...prev, color]
+    );
+  };
+
+  const getDisplayImages = (product: any): string[] => {
+    return parseImages(product.image);
   };
 
   return (
@@ -297,6 +249,8 @@ export default function AdminProducts() {
             if (!open) {
               setEditingId(null);
               form.reset();
+              setSelectedSizes([]);
+              setSelectedColors([]);
             }
           }}>
             <DialogTrigger asChild>
@@ -304,7 +258,7 @@ export default function AdminProducts() {
                 <Plus className="w-5 h-5" /> إضافة منتج
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold">{editingId ? "تعديل منتج" : "إضافة منتج جديد"}</DialogTitle>
               </DialogHeader>
@@ -352,7 +306,6 @@ export default function AdminProducts() {
                     )}/>
                   </div>
 
-                  {/* صور متعددة */}
                   <FormField control={form.control} name="images" render={({ field }) => (
                     <FormItem>
                       <FormLabel className="font-bold">صور المنتج</FormLabel>
@@ -367,54 +320,17 @@ export default function AdminProducts() {
                     </FormItem>
                   )}/>
 
-                  {/* ✅ الألوان */}
-                  <div className="border rounded-lg p-4 space-y-4">
-                    <FormLabel className="font-bold">الألوان المتوفرة</FormLabel>
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {COLOR_PRESETS.map((color) => (
-                        <button
-                          key={color.code}
-                          type="button"
-                          onClick={() => addColor({ name: color.name, code: color.code, hex: color.value })}
-                          className="w-10 h-10 rounded-full border-2 hover:scale-110 transition-transform"
-                          style={{ backgroundColor: color.value }}
-                          title={color.name}
-                        />
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="لون مخصص (مثال: كحلي)"
-                        value={customColor}
-                        onChange={(e) => setCustomColor(e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button type="button" variant="outline" onClick={handleAddCustomColor}>
-                        <Plus className="w-4 h-4 ml-1" /> إضافة
-                      </Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {colorFields.map((field, index) => (
-                        <Badge key={field.id} variant="secondary" className="flex items-center gap-2 px-3 py-1">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: field.hex }} />
-                          {field.name}
-                          <X className="w-3 h-3 cursor-pointer" onClick={() => removeColor(index)} />
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* ✅ الأحجام */}
+                  {/* الأحجام */}
                   <div className="border rounded-lg p-4 space-y-4">
                     <FormLabel className="font-bold">الأحجام المتوفرة</FormLabel>
-                    <div className="flex flex-wrap gap-2 mb-3">
+                    <div className="flex flex-wrap gap-2">
                       {SIZE_PRESETS.map((size) => (
                         <Button
                           key={size}
                           type="button"
-                          variant="outline"
+                          variant={selectedSizes.includes(size) ? "default" : "outline"}
                           size="sm"
-                          onClick={() => addSize(size)}
+                          onClick={() => toggleSize(size)}
                           className="rounded-full"
                         >
                           {size}
@@ -422,53 +338,41 @@ export default function AdminProducts() {
                       ))}
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {sizeFields.map((field, index) => (
-                        <Badge key={field.id} variant="secondary" className="flex items-center gap-2 px-3 py-1">
-                          {field}
-                          <X className="w-3 h-3 cursor-pointer" onClick={() => removeSize(index)} />
+                      {selectedSizes.map((size) => (
+                        <Badge key={size} variant="secondary" className="px-3 py-1">
+                          {size}
+                          <X className="w-3 h-3 mr-1 cursor-pointer" onClick={() => toggleSize(size)} />
                         </Badge>
                       ))}
                     </div>
                   </div>
 
-                  {/* ✅ المقاسات */}
+                  {/* الألوان */}
                   <div className="border rounded-lg p-4 space-y-4">
-                    <FormLabel className="font-bold">المقاسات التفصيلية</FormLabel>
-                    {measurementFields.map((field, index) => (
-                      <div key={field.id} className="flex gap-2 items-center">
-                        <Input
-                          placeholder="الاسم (مثال: الطول)"
-                          value={form.watch(`measurements.${index}.name`) || ""}
-                          onChange={(e) => form.setValue(`measurements.${index}.name`, e.target.value)}
-                          className="flex-1"
-                        />
-                        <Input
-                          placeholder="القيمة"
-                          value={form.watch(`measurements.${index}.value`) || ""}
-                          onChange={(e) => form.setValue(`measurements.${index}.value`, e.target.value)}
-                          className="w-24"
-                        />
-                        <Select
-                          value={form.watch(`measurements.${index}.unit`) || "cm"}
-                          onValueChange={(v) => form.setValue(`measurements.${index}.unit`, v)}
+                    <FormLabel className="font-bold">الألوان المتوفرة</FormLabel>
+                    <div className="flex flex-wrap gap-2">
+                      {COLOR_PRESETS.map((color) => (
+                        <Button
+                          key={color.code}
+                          type="button"
+                          variant={selectedColors.includes(color.name) ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => toggleColor(color.name)}
+                          className="gap-2"
                         >
-                          <SelectTrigger className="w-20">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {MEASUREMENT_PRESETS.map((unit) => (
-                              <SelectItem key={unit} value={unit}>{unit}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button type="button" variant="ghost" size="icon" onClick={() => removeMeasurement(index)}>
-                          <Trash2 className="w-4 h-4" />
+                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: color.value }} />
+                          {color.name}
                         </Button>
-                      </div>
-                    ))}
-                    <Button type="button" variant="outline" size="sm" onClick={() => addMeasurement({ name: "", value: "", unit: "cm" })}>
-                      <Plus className="w-4 h-4 ml-1" /> إضافة مقاس
-                    </Button>
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedColors.map((color) => (
+                        <Badge key={color} variant="secondary" className="px-3 py-1">
+                          {color}
+                          <X className="w-3 h-3 mr-1 cursor-pointer" onClick={() => toggleColor(color)} />
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
 
                   <FormField control={form.control} name="description" render={({ field }) => (
