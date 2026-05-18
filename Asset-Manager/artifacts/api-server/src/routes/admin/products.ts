@@ -14,6 +14,7 @@ import {
   AdminDeleteProductResponse,
 } from "@workspace/api-zod";
 import { requireAdmin } from "../../middlewares/requireAdmin";
+import { z } from "zod";
 
 const router: IRouter = Router();
 
@@ -31,8 +32,24 @@ function serialize(p: typeof productsTable.$inferSelect, categoryName?: string |
     categoryName: categoryName ?? null,
     image: p.image,
     createdAt: p.createdAt.toISOString(),
+    sizes: p.sizes || "[]",
+    colors: p.colors || "[]",
+    measurements: p.measurements || "[]",
   };
 }
+
+// ✅ توسيع الـ Schema ليشمل الحقول الجديدة
+const ExtendedCreateProductBody = AdminCreateProductBody.extend({
+  sizes: z.string().optional().default("[]"),
+  colors: z.string().optional().default("[]"),
+  measurements: z.string().optional().default("[]"),
+});
+
+const ExtendedUpdateProductBody = AdminUpdateProductBody.extend({
+  sizes: z.string().optional(),
+  colors: z.string().optional(),
+  measurements: z.string().optional(),
+});
 
 router.get("/admin/products", async (req, res): Promise<void> => {
   const parsed = AdminListProductsQueryParams.safeParse(req.query);
@@ -56,11 +73,13 @@ router.get("/admin/products", async (req, res): Promise<void> => {
 });
 
 router.post("/admin/products", async (req, res): Promise<void> => {
-  const parsed = AdminCreateProductBody.safeParse(req.body);
+  // ✅ استخدام الـ Schema الموسع
+  const parsed = ExtendedCreateProductBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
+  
   const [row] = await db
     .insert(productsTable)
     .values({
@@ -70,6 +89,9 @@ router.post("/admin/products", async (req, res): Promise<void> => {
       quantity: parsed.data.quantity,
       categoryId: parsed.data.categoryId,
       image: parsed.data.image,
+      sizes: parsed.data.sizes || "[]",        // ✅ إضافة الأحجام
+      colors: parsed.data.colors || "[]",      // ✅ إضافة الألوان
+      measurements: parsed.data.measurements || "[]", // ✅ إضافة المقاسات
     })
     .returning();
 
@@ -106,11 +128,13 @@ router.put("/admin/products/:id", async (req, res): Promise<void> => {
     res.status(400).json({ error: params.error.message });
     return;
   }
-  const parsed = AdminUpdateProductBody.safeParse(req.body);
+  // ✅ استخدام الـ Schema الموسع
+  const parsed = ExtendedUpdateProductBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
+  
   const [row] = await db
     .update(productsTable)
     .set({
@@ -120,9 +144,13 @@ router.put("/admin/products/:id", async (req, res): Promise<void> => {
       quantity: parsed.data.quantity,
       categoryId: parsed.data.categoryId,
       image: parsed.data.image,
+      sizes: parsed.data.sizes,        // ✅ تحديث الأحجام
+      colors: parsed.data.colors,      // ✅ تحديث الألوان
+      measurements: parsed.data.measurements, // ✅ تحديث المقاسات
     })
     .where(eq(productsTable.id, params.data.id))
     .returning();
+    
   if (!row) {
     res.status(404).json({ error: "Product not found" });
     return;
