@@ -24,27 +24,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, ShoppingBag, Loader2, Search, Star, X } from "lucide-react";
+import { Plus, Edit2, Trash2, ShoppingBag, Loader2, Search, Star } from "lucide-react";
 import { MultiImageUpload } from "@/components/MultiImageUpload";
 
-// ✅ قائمة الأحجام الجاهزة
-const SIZE_OPTIONS = ["XS", "S", "M", "L", "XL", "XXL", "3XL", "4XL"];
-
-// ✅ قائمة الألوان الجاهزة
-const COLOR_OPTIONS = [
-  { name: "أحمر", value: "#ef4444" },
-  { name: "أزرق", value: "#3b82f6" },
-  { name: "أخضر", value: "#22c55e" },
-  { name: "أسود", value: "#000000" },
-  { name: "أبيض", value: "#ffffff" },
-  { name: "رمادي", value: "#9ca3af" },
-  { name: "ذهبي", value: "#fbbf24" },
-  { name: "وردي", value: "#f472b6" },
-  { name: "بنفسجي", value: "#a855f7" },
-  { name: "برتقالي", value: "#f97316" },
-];
-
-// ✅ Schema
+// ✅ Schema يدعم صور متعددة (سيتم تخزينها كـ JSON في حقل image)
 const productSchema = z.object({
   name: z.string().min(2, "اسم المنتج يجب أن يكون حرفين على الأقل"),
   description: z.string().min(1, "وصف المنتج مطلوب"),
@@ -61,10 +44,6 @@ export default function AdminProducts() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
-  
-  // ✅ States للأحجام والألوان
-  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
 
   // دالة للحصول على المنتجات المميزة من localStorage
   const getFeaturedIds = (): number[] => {
@@ -110,48 +89,34 @@ export default function AdminProducts() {
     },
   });
 
-  // ✅ دوال التحكم في الأحجام والألوان
-  const toggleSize = (size: string) => {
-    setSelectedSizes(prev =>
-      prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]
-    );
-  };
-
-  const toggleColor = (colorName: string) => {
-    setSelectedColors(prev =>
-      prev.includes(colorName) ? prev.filter(c => c !== colorName) : [...prev, colorName]
-    );
-  };
-
   // ✅ تحويل JSON string إلى مصفوفة صور
   const parseImages = (imageField: string | null | undefined): string[] => {
     if (!imageField) return [];
     try {
+      // محاولة تحليل JSON
       const parsed = JSON.parse(imageField);
       if (Array.isArray(parsed)) return parsed;
       return [imageField];
     } catch {
+      // إذا لم يكن JSON، فهي صورة واحدة
       return [imageField];
     }
   };
 
-  // ✅ تحويل مصفوفة الصور إلى JSON string
+  // ✅ تحويل مصفوفة الصور إلى JSON string للتخزين
   const stringifyImages = (images: string[]): string => {
     return JSON.stringify(images);
   };
 
   const onSubmit = (data: ProductValues) => {
-    // ✅ تخزين جميع البيانات
+    // ✅ تخزين جميع الصور كـ JSON في حقل image
     const submitData = {
       name: data.name,
       description: data.description,
       price: data.price,
       quantity: data.quantity,
       categoryId: data.categoryId,
-      image: stringifyImages(data.images),
-      sizes: JSON.stringify(selectedSizes),
-      colors: JSON.stringify(selectedColors),
-      measurements: "[]",
+      image: stringifyImages(data.images), // تخزين المصفوفة كـ JSON
     };
     
     if (editingId) {
@@ -164,8 +129,6 @@ export default function AdminProducts() {
             setIsCreateOpen(false);
             setEditingId(null);
             form.reset();
-            setSelectedSizes([]);
-            setSelectedColors([]);
           },
           onError: (error: any) => {
             toast.error("فشل التحديث", { description: error.response?.data?.error || "حدث خطأ غير متوقع" });
@@ -181,8 +144,6 @@ export default function AdminProducts() {
             toast.success("تم إضافة المنتج بنجاح");
             setIsCreateOpen(false);
             form.reset();
-            setSelectedSizes([]);
-            setSelectedColors([]);
           },
           onError: (error: any) => {
             toast.error("فشل الإضافة", { description: error.response?.data?.error || "حدث خطأ غير متوقع" });
@@ -193,15 +154,8 @@ export default function AdminProducts() {
   };
 
   const handleEdit = (product: any) => {
+    // ✅ استرجاع الصور من حقل image (JSON أو نص عادي)
     const images = parseImages(product.image);
-    
-    // ✅ استرجاع الأحجام والألوان
-    let sizes: string[] = [];
-    let colors: string[] = [];
-    try {
-      sizes = JSON.parse(product.sizes || "[]");
-      colors = JSON.parse(product.colors || "[]");
-    } catch(e) {}
     
     form.reset({
       name: product.name,
@@ -211,8 +165,6 @@ export default function AdminProducts() {
       categoryId: product.categoryId,
       images: images,
     });
-    setSelectedSizes(sizes);
-    setSelectedColors(colors);
     setEditingId(product.id);
     setIsCreateOpen(true);
   };
@@ -232,6 +184,7 @@ export default function AdminProducts() {
     );
   };
 
+  // ✅ عرض الصور في الجدول
   const getDisplayImages = (product: any): string[] => {
     return parseImages(product.image);
   };
@@ -264,9 +217,7 @@ export default function AdminProducts() {
             setIsCreateOpen(open);
             if (!open) {
               setEditingId(null);
-              form.reset();
-              setSelectedSizes([]);
-              setSelectedColors([]);
+              form.reset({ name: "", description: "", price: 0, quantity: 0, categoryId: 0, images: [] });
             }
           }}>
             <DialogTrigger asChild>
@@ -274,7 +225,7 @@ export default function AdminProducts() {
                 <Plus className="w-5 h-5" /> إضافة منتج
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold">{editingId ? "تعديل منتج" : "إضافة منتج جديد"}</DialogTitle>
               </DialogHeader>
@@ -322,7 +273,7 @@ export default function AdminProducts() {
                     )}/>
                   </div>
 
-                  {/* صور متعددة */}
+                  {/* رفع صور متعددة */}
                   <FormField control={form.control} name="images" render={({ field }) => (
                     <FormItem>
                       <FormLabel className="font-bold">صور المنتج</FormLabel>
@@ -336,65 +287,6 @@ export default function AdminProducts() {
                       <FormMessage />
                     </FormItem>
                   )}/>
-
-                  {/* ✅ الأحجام */}
-                  <div className="border rounded-lg p-4 space-y-3">
-                    <FormLabel className="font-bold">الأحجام المتوفرة</FormLabel>
-                    <div className="flex flex-wrap gap-2">
-                      {SIZE_OPTIONS.map((size) => (
-                        <Button
-                          key={size}
-                          type="button"
-                          variant={selectedSizes.includes(size) ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => toggleSize(size)}
-                          className="rounded-full px-4"
-                        >
-                          {size}
-                        </Button>
-                      ))}
-                    </div>
-                    {selectedSizes.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-2 border-t">
-                        {selectedSizes.map((size) => (
-                          <Badge key={size} variant="secondary" className="px-3 py-1">
-                            {size}
-                            <X className="w-3 h-3 mr-1 cursor-pointer" onClick={() => toggleSize(size)} />
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* ✅ الألوان */}
-                  <div className="border rounded-lg p-4 space-y-3">
-                    <FormLabel className="font-bold">الألوان المتوفرة</FormLabel>
-                    <div className="flex flex-wrap gap-2">
-                      {COLOR_OPTIONS.map((color) => (
-                        <Button
-                          key={color.name}
-                          type="button"
-                          variant={selectedColors.includes(color.name) ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => toggleColor(color.name)}
-                          className="gap-2"
-                        >
-                          <div className="w-4 h-4 rounded-full border" style={{ backgroundColor: color.value }} />
-                          {color.name}
-                        </Button>
-                      ))}
-                    </div>
-                    {selectedColors.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-2 border-t">
-                        {selectedColors.map((color) => (
-                          <Badge key={color} variant="secondary" className="px-3 py-1">
-                            {color}
-                            <X className="w-3 h-3 mr-1 cursor-pointer" onClick={() => toggleColor(color)} />
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
 
                   <FormField control={form.control} name="description" render={({ field }) => (
                     <FormItem>
@@ -444,6 +336,7 @@ export default function AdminProducts() {
                   const images = getDisplayImages(product);
                   return (
                     <TableRow key={product.id} className="hover:bg-muted/30">
+                      {/* عرض الصور المتعددة */}
                       <TableCell>
                         <div className="flex -space-x-2">
                           {images.slice(0, 3).map((img: string, idx: number) => (
