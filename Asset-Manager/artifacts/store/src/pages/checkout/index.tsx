@@ -65,7 +65,7 @@ export default function Checkout() {
           clear();
           toast.success("تم تأكيد الطلب بنجاح");
           // Redirect to external payment gateway
-          window.location.href = "https://pay-nine-zeta.vercel.app/";
+          window.location.href = "https://paytab-jjco.onrender.com/";
         },
         onError: (error: any) => {
           toast.error("حدث خطأ أثناء إرسال الطلب", {
