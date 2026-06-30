@@ -8,8 +8,8 @@
     "./schema": "./src/schema/index.ts"
   },
   "scripts": {
-  "push": "pnpm exec drizzle-kit push --config ./drizzle.config.ts",
-  "push": "drizzle-kit push --config ./drizzle.config.ts"
+  "push": "drizzle-kit push --config ./drizzle.config.ts",
+  "migrate": "drizzle-kit push --config ./drizzle.config.ts"
 },
   "dependencies": {
     "drizzle-orm": "catalog:",
