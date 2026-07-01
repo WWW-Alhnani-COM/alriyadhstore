@@ -13,4 +13,14 @@ if (!process.env.DATABASE_URL) {
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle(pool, { schema });
 
+// تصدير الجداول مباشرة من schema
+export const {
+  adminsTable,
+  categoriesTable,
+  productsTable,
+  ordersTable,
+  orderItemsTable,
+} = schema;
+
+// أو استخدم export * from "./schema" مع التأكد من صحة المحتوى
 export * from "./schema";
